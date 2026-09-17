@@ -1,0 +1,56 @@
+name: little_games
+description: Simple, friendly mini-games for 5-year-olds. Offline, no ads, no tracking.
+
+# Prevent accidental publishing to pub.dev.
+publish_to: 'none'
+
+version: 0.1.0
+
+environment:
+  sdk: ^3.12.0
+
+dependencies:
+  flame: ^1.38.0
+  flutter:
+    sdk: flutter
+
+  audioplayers: ^6.8.1
+  flame_audio: ^2.12.2
+  go_router: ^17.3.0
+  provider: ^6.1.5+1
+  shared_preferences: ^2.5.5
+  nes_ui: ^0.30.0
+  google_fonts: ^6.3.3
+  logging: ^1.3.0
+  rive: ^0.14.11
+  flame_rive: ^1.11.2
+
+dev_dependencies:
+  flame_test: ^2.3.0
+  flutter_lints: ^6.0.0
+  flutter_test:
+    sdk: flutter
+  flutter_launcher_icons: ^0.14.4
+  test: ^1.31.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
+    - assets/images/dash/
+    - assets/images/enemies/
+    - assets/images/scenery/
+    - assets/music/
+    - assets/rive/
+    - assets/sfx/
+
+  fonts:
+    - family: Press Start 2P
+      fonts:
+        - asset: assets/fonts/Press_Start_2P/PressStart2P-Regular.ttf
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icons/icon.png"
