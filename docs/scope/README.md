@@ -29,3 +29,4 @@ for how to write one and [`../ABOUT-DOCS.md`](../ABOUT-DOCS.md) for where it sit
 | Scope | Status | What |
 |---|---|---|
 | [games/balloon-pop-scope.md](games/balloon-pop-scope.md) | shipped | First game: balloons float up, tap to pop, celebrate every 10 |
+| [games/dress-the-dog-scope.md](games/dress-the-dog-scope.md) | proposed | Second game: dress a dog, toggle the weather, the dog reacts to what it is wearing |

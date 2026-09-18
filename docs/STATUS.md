@@ -20,10 +20,11 @@ Where we are, right now. Updated at the end of every session.
 | 2 | `CLAUDE.md` — the binding rules for every future session | **done** |
 | 3 | Kid-friendly home screen with picture buttons + gated settings | **done** |
 | 4 | Balloon Pop — the first mini-game | **done** |
-| 5 | Rive character reacting to pops, via data binding | **done** (stand-in art) |
+| 5 | Rive character reacting to pops, via data binding | **plumbing done, not wired** — stand-in removed, awaiting real art |
 | 6 | Kid sound cues + per-screen music, replacing the arcade sfx | **done** (placeholder audio) |
 | 7 | Balloon Pop — feel: swipe-to-pop, burst, living sky, animated stars, pop ladder | **done** |
 | 8 | Balloon Pop — mechanics: chaining colour bunches, three-tap big balloons, a sky that answers | **done** |
+| 9 | Dress the Dog — the second game: dress a dog (tap or drag), toggle the weather, the dog reacts | **playable, placeholder art** — [scope](scope/games/dress-the-dog-scope.md), [session](sessions/games/dress-the-dog-session.md); never run on a device |
 
 ## Build health
 
@@ -43,8 +44,9 @@ Where we are, right now. Updated at the end of every session.
 ## What is proven, and what isn't
 
 **Proven:** the menu renders with no text and three big tiles; tapping one enters Balloon Pop;
-balloons rise, pop on tap, and respawn; progress stars fill and reset, so celebrations fire; the
-Rive file loads and renders through the 0.14 data-binding API; a quick tap cannot open settings but
+balloons rise, pop on tap, and respawn; progress stars fill and reset, so celebrations fire; a
+Rive file loaded and rendered through the 0.14 data-binding API (proven with the stand-in, which has
+since been removed — the path is unexercised until real art arrives); a quick tap cannot open settings but
 a 3-second hold can; no Dart errors across several hundred synthetic taps. Every sfx filename
 referenced in Dart exists; the generated audio has no clipping, no edge clicks and no content above
 4 kHz; the cue volume ordering (wobble < pop < celebrate) is locked by a test; a tap consumed by a
@@ -94,7 +96,7 @@ remove themselves.
 | Template **arcade music** still plays under the games; only the sfx were replaced | [celebration scope](scope/shared/celebration-and-sound-scope.md) |
 | No real artwork; balloons are drawn shapes, tiles are Material icons | [balloon pop README](../lib/games/balloon_pop/README.md) |
 | **No persistence between sessions.** Celebrations do not add up to anything — a sticker book is the obvious next feature, and `shared_preferences` is already wired in | [roadmap](vision/roadmap.md) |
-| Rive character is `rewards.riv` — a mock rewards *screen*, not a character. Now sits on the new hills, where it reads as a small phone lying in the grass | same |
+| **There is no character on screen.** The `rewards.riv` stand-in (a mock rewards *screen*, not a character) was removed — it read as a small dark phone lying in the grass and did nothing when tapped. `RiveCharacter` and `RiveNative.init()` remain, unused and ready for real art | [balloon pop README](../lib/games/balloon_pop/README.md) |
 | Landscape set in `main.dart`, **not** yet in the native manifests | [platform scope](scope/setup/landscape-and-platform-config-scope.md) |
 | `web/`, `windows/`, `linux/` folders still present; not shipping targets | same |
 | Template leftovers: Dash sprites, arcade music, unused `nes_ui` dep | [setup scope](scope/setup/project-from-template-scope.md) |

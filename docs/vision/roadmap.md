@@ -20,6 +20,7 @@ Each exercises something slightly different while staying inside the rules (no r
 | Game | The loop | Exercises |
 |---|---|---|
 | **Balloon Pop** (first) | Balloons rise, tap to pop, celebrate every 10 | Cause and effect; tapping accuracy |
+| **Dress the Dog** | Dress a dog, pick the weather, the dog reacts — funnily when the outfit is wrong | Weather and clothing sense; choice with no wrong answer |
 | **Shape Sorter** | Drag a shape to the matching hole; wrong ones wobble back | Shape recognition; drag gestures |
 | **Colour Match** | Tap the thing that matches the shown colour | Colour naming; visual matching |
 | **Counting Friends** | Tap animals one at a time, each counts aloud | Early counting, one-to-one correspondence |

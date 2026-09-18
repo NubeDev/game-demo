@@ -70,8 +70,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     GameTile(
                       icon: Icons.pets_rounded,
                       color: KidPalette.playColors[4],
-                      comingSoon: true,
-                      onTap: sounds.wobble,
+                      onTap: () {
+                        sounds.tap();
+                        GoRouter.of(context).go('/dress-the-dog');
+                      },
                     ),
                   ],
                 ),

@@ -9,8 +9,6 @@ import '../../shared/celebration.dart';
 import '../../shared/kid_haptics.dart';
 import '../../shared/kid_palette.dart';
 import '../../shared/kid_sounds.dart';
-import '../../shared/rive_character.dart';
-import 'assets.dart';
 import 'components/balloon.dart';
 import 'components/progress_stars.dart';
 import 'components/sky.dart';
@@ -115,7 +113,6 @@ class BalloonPopGame extends FlameGame with TapCallbacks, DragCallbacks {
 
   late final Celebration _celebration;
   late final ProgressStars _stars;
-  RiveCharacter? _character;
 
   /// Pops since the last celebration.
   int _popsThisRound = 0;
@@ -179,22 +176,14 @@ class BalloonPopGame extends FlameGame with TapCallbacks, DragCallbacks {
     _celebration = Celebration();
     add(_celebration);
 
-    // The Rive character watches from the bottom-left corner.
-    //
-    // It is added optimistically: if the file or its properties are missing,
-    // RiveCharacter logs and does nothing, and the game still plays. A missing
-    // character must never block the child.
-    final character = RiveCharacter(
-      assetPath: BalloonPopAssets.character,
-      properties: balloonPopCharacterProperties,
-      // Small and cornered: rewards.riv is a stand-in (it is a whole rewards
-      // SCREEN, not a character), so it is kept out of the play area until real
-      // character art replaces it.
-      size: Vector2(150, 150),
-      position: Vector2(16, size.y - 166),
-    );
-    _character = character;
-    add(character);
+    // NO Rive character yet. The plumbing for one is ready and unused:
+    // lib/shared/rive_character.dart, plus the property names and the drop-in
+    // steps in this folder's README. It is deliberately not wired to anything,
+    // because the only .riv file to hand was the flame_rive example's rewards
+    // SCREEN, which rendered as a small dark rectangle in the grass. A thing
+    // that sits in the play area and does nothing when touched reads to a
+    // five-year-old as the game being broken (CLAUDE.md §3), so nothing is
+    // better than a stand-in until real character art exists.
 
     // A bunch and a single to start, so the screen is never empty on arrival —
     // and so the ripple is there to be discovered in the first few seconds.
@@ -378,9 +367,6 @@ class BalloonPopGame extends FlameGame with TapCallbacks, DragCallbacks {
       _enqueueChain(balloon);
     }
 
-    // Build anticipation as the stars fill.
-    _character?.setExcitement(_popsThisRound / popsPerCelebration);
-
     if (_popsThisRound >= popsPerCelebration) {
       _celebrate();
     }
@@ -503,7 +489,6 @@ class BalloonPopGame extends FlameGame with TapCallbacks, DragCallbacks {
     sounds.celebrate();
     KidHaptics.celebrate();
     _celebration.burst(size);
-    _character?.celebrate();
 
     // Pause spawning briefly so the confetti is the thing on screen, then roll
     // straight back into play. There is no "well done" screen to dismiss: a
@@ -523,7 +508,6 @@ class BalloonPopGame extends FlameGame with TapCallbacks, DragCallbacks {
       removeOnFinish: true,
       onTick: () {
         _spawning = true;
-        _character?.setExcitement(0);
         // Come back generous: a whole bunch already on its way up, so the
         // moment after a celebration is the fullest the sky ever looks — and
         // the first thing back is the thing most worth popping.
@@ -541,16 +525,3 @@ class _ChainLink {
   final Balloon balloon;
   double delay;
 }
-
-/// What the character's `.riv` file must expose.
-///
-/// These names match `rewards.riv` from the official flame_rive example, which
-/// is a stand-in until real art exists. A custom file swaps these names and
-/// needs no Dart changes — see `README.md` in this folder.
-const balloonPopCharacterProperties = RiveCharacterProperties(
-  // rewards.riv has no triggers of its own; it exposes nested numbers. The
-  // excitement number below drives its coin counter, which is enough to prove
-  // the data binding works end to end.
-  excitementNumber: 'Coin/Item_Value',
-  excitementScale: 100,
-);

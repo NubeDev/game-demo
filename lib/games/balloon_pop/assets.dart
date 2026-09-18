@@ -6,12 +6,12 @@
 class BalloonPopAssets {
   const BalloonPopAssets._();
 
-  /// The Rive character that reacts to pops.
-  ///
-  /// TODO(art): currently `rewards.riv` from the official flame_rive example,
-  /// used so the data binding can be tested before real art exists. See
-  /// `lib/games/balloon_pop/README.md` for what a custom file must expose.
-  static const character = 'assets/rive/rewards.riv';
+  // TODO(art): the Rive character. There is no .riv file yet — the stand-in
+  // that used to sit here was the flame_rive example's rewards screen, not a
+  // character, and it was removed. `lib/shared/rive_character.dart` is ready
+  // for a real one; README.md in this folder says what it must expose. The
+  // path lands here and nothing else in the game changes.
+  // static const character = 'assets/rive/character.riv';
 
   // TODO(art): real balloon sprites, e.g.
   // static const balloonRed = 'images/balloons/red.png';

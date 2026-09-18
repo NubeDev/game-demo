@@ -102,6 +102,9 @@ Two things worth knowing if you're extending it:
 - **`Factory` is ambiguous.** Flutter's `foundation.dart` and Rive both export a `Factory`. This
   file imports `foundation` with `hide Factory`.
 - **`RiveNative.init()` must run before any file loads.** It's called once in `main()`.
+- **Nothing uses this component right now.** No game instantiates it and no `.riv` ships — the
+  Balloon Pop stand-in was removed because it was a rewards screen, not a character. The file stays
+  because the drop-in path is the whole point of it.
 
 The component **degrades gracefully**: missing file, missing state machine, missing view model, or
 a missing named property each log and do nothing. A character that fails to load must never take a

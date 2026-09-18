@@ -16,6 +16,10 @@ void main() async {
 
   // Rive 0.14+ requires its native runtime to be initialised before any file is
   // loaded. Must happen before any RiveCharacter is created (CLAUDE.md §2).
+  //
+  // Nothing loads a .riv yet — no character art exists. This stays because the
+  // failure it prevents is a confusing one: a .riv added later without it fails
+  // at load with no obvious cause.
   await RiveNative.init();
 
   // Landscape only, both ways round so it doesn't matter which way the tablet

@@ -141,17 +141,25 @@ read one, and dismissing something breaks the rhythm.
 Which properties it looks for is `balloonPopCharacterProperties` at the bottom of
 `balloon_pop_game.dart`.
 
-### Right now: a stand-in
+### Right now: there isn't one
 
-The game currently loads **`assets/rive/rewards.riv`**, taken from the
-[official flame_rive example](https://github.com/flame-engine/flame/tree/main/packages/flame_rive/example).
-It is not a character at all — it is a mock rewards *screen* (a treasure chest, coin and gem
-counters, an energy bar). It is here only to prove the loading and data-binding path works end to
-end before real art exists, so it is rendered small in the bottom-left corner, out of the play area.
+**The game loads no `.riv` file.** There is no character on screen, and `RiveCharacter` is not
+instantiated anywhere.
 
-It exposes nested view models rather than triggers, so the game binds excitement to its coin
-counter (`Coin/Item_Value`, 0–100). Popping balloons makes the coin number climb. That is not a
-reaction anyone wants to ship — it is a wire test.
+There used to be a stand-in: `assets/rive/rewards.riv` from the
+[official flame_rive example](https://github.com/flame-engine/flame/tree/main/packages/flame_rive/example),
+rendered small in the bottom-left corner. It was never a character — it is a mock rewards *screen*
+(treasure chest, coin and gem counters, energy bar), and it exposed no triggers, so the game bound
+"excitement" to its coin counter and `celebrate()` fired nothing. It was a wire test for the
+data-binding path, not art.
+
+It was removed. On screen it read as a small dark rectangle lying in the grass, and it did nothing
+when tapped — which at this age is not scenery, it is a broken thing in the play area
+(CLAUDE.md §3). Nothing is better than a stand-in until real character art exists.
+
+**What survives is the plumbing, unused and ready:** `lib/shared/rive_character.dart`,
+`RiveNative.init()` in `main()`, and the drop-in steps below. Adding a character is an asset plus
+about six lines.
 
 ### What your own `.riv` file needs
 
@@ -168,13 +176,14 @@ model:
 Nested properties are addressed with a path, e.g. `Body/Eyes` — that is why the stand-in uses
 `Coin/Item_Value`.
 
-Then point the game at it:
+Then wire it up. Drop the file in `assets/rive/`, re-add `- assets/rive/` to `pubspec.yaml`
+(the entry was removed with the directory), and:
 
 ```dart
-// lib/games/balloon_pop/assets.dart
+// lib/games/balloon_pop/assets.dart — uncomment and point at your file
 static const character = 'assets/rive/my_character.riv';
 
-// lib/games/balloon_pop/balloon_pop_game.dart
+// lib/games/balloon_pop/balloon_pop_game.dart — restore the constant
 const balloonPopCharacterProperties = RiveCharacterProperties(
   celebrateTrigger: 'Celebrate',
   encourageTrigger: 'Encourage',
@@ -183,8 +192,12 @@ const balloonPopCharacterProperties = RiveCharacterProperties(
 );
 ```
 
-No other Dart changes. Every property is optional — `RiveCharacter` logs and carries on if one is
-missing, so a partially-finished file still works and the game never breaks because of art.
+Then re-add the field, the `RiveCharacter(...)` in `onLoad` (the comment marking where it went is
+still there), and the three calls: `setExcitement()` as the stars fill, `celebrate()` in
+`_celebrate()`, and `setExcitement(0)` when play resumes.
+
+Every property is optional — `RiveCharacter` logs and carries on if one is missing, so a
+partially-finished file still works and the game never breaks because of art.
 
 ### One rule for the animation
 
@@ -210,5 +223,5 @@ Also: nothing startling. No sudden lunges toward the screen, no loud-looking mot
 - A **sticker book** is the obvious next thing: something that persists between sessions, so the
   celebrations add up to more than the moment. `shared_preferences` is already wired in for
   progress.
-- The Rive stand-in now sits on the new hills, where it reads as a small phone lying in the grass.
-  It was always a wire test rather than art (see above); it is more obviously wrong now.
+- **A character.** There is none — the stand-in was removed (see above) and the corner is empty.
+  The plumbing is ready; it needs a real `.riv`, or a coded placeholder in the meantime.
