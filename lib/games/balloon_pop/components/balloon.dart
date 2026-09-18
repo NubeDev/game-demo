@@ -6,10 +6,16 @@ import 'package:flame/events.dart';
 import 'package:flutter/material.dart';
 
 import '../../../shared/kid_palette.dart';
+import '../../../shared/kid_shapes.dart';
+import 'pop_burst.dart';
 
-/// One balloon: floats up, pops when tapped.
+/// One balloon: floats up, pops when tapped or swiped through.
 ///
-/// Placeholder art — a coloured circle with a knot and a string, drawn in code.
+/// Placeholder art — drawn in code, but drawn properly: a balloon body with a
+/// knot, a swinging string, a highlight that makes it read as round, and a tilt
+/// that follows its own drift so it looks like it is riding the air rather than
+/// sliding along a track.
+///
 /// Replacing it with a sprite means changing [render] and reading the path from
 /// `assets.dart`; nothing else here changes.
 class Balloon extends PositionComponent with TapCallbacks {
@@ -19,21 +25,33 @@ class Balloon extends PositionComponent with TapCallbacks {
     required this.onPopped,
     required super.position,
     required double radius,
+    this.sparkly = false,
   })  : _radius = radius,
         super(
           // Size is the TOUCH TARGET, not the drawn balloon. It is deliberately
-          // larger than the art (see BalloonPopGame.balloonRadius): a
+          // larger than the art (see BalloonPopGame.balloonRadii): a
           // five-year-old aiming at the balloon and landing just outside it
           // should still pop it. A tap that visibly misses but felt on-target
           // reads to them as the game ignoring them.
-          size: Vector2.all(radius * 2.6),
+          size: Vector2.all(radius * touchTargetRatio),
           anchor: Anchor.center,
         );
+
+  /// How much bigger the touch target is than the balloon's radius.
+  ///
+  /// Exposed so the game and its tests can check the smallest balloon it ever
+  /// spawns still clears the 80x80 floor (CLAUDE.md §3).
+  static const touchTargetRatio = 2.6;
 
   final Color color;
 
   /// Logical pixels per second upward. Gentle and varied.
   final double riseSpeed;
+
+  /// A rare balloon that glitters and bursts into stars. Worth no more progress
+  /// than any other — there is no score, so a "better" balloon can only ever
+  /// mean a better *moment*, never a bigger number (CLAUDE.md §3).
+  final bool sparkly;
 
   /// Called when this balloon is popped by a tap (not when it drifts away).
   final void Function(Balloon balloon) onPopped;
@@ -41,14 +59,34 @@ class Balloon extends PositionComponent with TapCallbacks {
   final double _radius;
   final _random = Random();
 
+  /// The drawn radius, which is smaller than the touch target.
+  double get radius => _radius;
+
   /// Horizontal drift, so balloons don't rise in straight mechanical lines.
   late final double _driftPhase = _random.nextDouble() * pi * 2;
   late final double _driftAmount = 8 + _random.nextDouble() * 14;
+
+  /// Each balloon breathes at its own rate, so a screenful never pulses in
+  /// unison — that would read as one machine rather than several balloons.
+  late final double _breathPhase = _random.nextDouble() * pi * 2;
+  late final double _breathRate = 1.6 + _random.nextDouble() * 0.7;
+
   double _time = 0;
 
-  /// Set once popping starts, so a child mashing the same balloon can't score
+  /// 0..1, faded out while drifting away off the top.
+  double _alpha = 1;
+
+  /// Set once popping starts, so a child mashing the same balloon can't count
   /// it twice while the pop animation plays.
   bool _isPopping = false;
+
+  /// Set once it has left the top of the screen, so the game's per-frame sweep
+  /// can call [driftAway] repeatedly without restarting the fade.
+  bool _isLeaving = false;
+
+  /// True once this balloon can no longer be popped — it is bursting, or it has
+  /// already floated away.
+  bool get isSpent => _isPopping || _isLeaving;
 
   @override
   void update(double dt) {
@@ -57,56 +95,137 @@ class Balloon extends PositionComponent with TapCallbacks {
 
     _time += dt;
     position.y -= riseSpeed * dt;
+
     // Gentle sine sway. Small amplitude — it should read as floating, not
     // as the balloon dodging the child's finger.
-    position.x += sin(_time * 1.2 + _driftPhase) * _driftAmount * dt;
+    final sway = sin(_time * 1.2 + _driftPhase);
+    position.x += sway * _driftAmount * dt;
+
+    // Lean into the drift, like a real balloon on a string. Tiny (about 4
+    // degrees) — enough to look alive, not enough to move the touch target.
+    angle = cos(_time * 1.2 + _driftPhase) * 0.07;
+
+    if (_isLeaving) {
+      // Shrink and fade on the way out instead of blinking off, so a balloon
+      // the child was reaching for visibly *leaves* rather than being taken.
+      _alpha = (_alpha - dt * 1.6).clamp(0.0, 1.0);
+      final s = (scale.x - dt * 0.5).clamp(0.2, 1.0);
+      scale.setValues(s, s);
+      if (_alpha <= 0) removeFromParent();
+    }
   }
 
   @override
   void render(Canvas canvas) {
     final centre = Offset(size.x / 2, size.y / 2);
+    // Breathing squash-and-stretch: helium balloons never hold still.
+    final breath = sin(_time * _breathRate + _breathPhase) * 0.03;
+    final bodyWidth = _radius * 1.85 * (1 - breath);
+    final bodyHeight = _radius * 2.1 * (1 + breath);
 
-    // String.
-    final stringPaint = Paint()
-      ..color = KidPalette.ink.withValues(alpha: 0.5)
-      ..strokeWidth = 2
-      ..style = PaintingStyle.stroke;
+    _renderString(canvas, centre);
+    _renderBody(canvas, centre, bodyWidth, bodyHeight);
+    if (sparkly) _renderGlitter(canvas, centre);
+    _renderHighlight(canvas, centre);
+  }
+
+  void _renderString(Canvas canvas, Offset centre) {
+    // The string trails opposite the sway, which is what sells "floating".
+    final swing = sin(_time * 1.2 + _driftPhase + pi) * _radius * 0.35;
     final path = Path()
       ..moveTo(centre.dx, centre.dy + _radius)
       ..quadraticBezierTo(
-        centre.dx + _radius * 0.4,
+        centre.dx + swing,
         centre.dy + _radius * 1.5,
-        centre.dx,
-        centre.dy + _radius * 1.9,
+        centre.dx + swing * 0.5,
+        centre.dy + _radius * 1.95,
       );
-    canvas.drawPath(path, stringPaint);
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = KidPalette.ink.withValues(alpha: 0.5 * _alpha)
+        ..strokeWidth = 2
+        ..style = PaintingStyle.stroke,
+    );
+  }
 
-    // Body. Slightly taller than wide, like a real balloon.
-    canvas.drawOval(
-      Rect.fromCenter(
-        center: centre,
-        width: _radius * 1.85,
-        height: _radius * 2.1,
-      ),
-      Paint()..color = color,
+  void _renderBody(
+    Canvas canvas,
+    Offset centre,
+    double bodyWidth,
+    double bodyHeight,
+  ) {
+    final body = Rect.fromCenter(
+      center: centre,
+      width: bodyWidth,
+      height: bodyHeight,
     );
 
-    // Knot.
+    // A soft shadow inside the lower edge, so the balloon reads as a volume
+    // rather than a flat sticker. Radial, not a drop shadow: no hard edges.
+    canvas.drawOval(
+      body,
+      Paint()
+        ..shader = RadialGradient(
+          center: const Alignment(-0.35, -0.45),
+          radius: 0.95,
+          colors: [
+            _lighten(color, 0.30).withValues(alpha: _alpha),
+            color.withValues(alpha: _alpha),
+            _darken(color, 0.18).withValues(alpha: _alpha),
+          ],
+          stops: const [0.0, 0.55, 1.0],
+        ).createShader(body),
+    );
+
+    // Knot: a small triangle under the body, like the pinched neck.
+    final knotY = centre.dy + bodyHeight / 2;
+    canvas.drawPath(
+      Path()
+        ..moveTo(centre.dx - _radius * 0.13, knotY - _radius * 0.04)
+        ..lineTo(centre.dx + _radius * 0.13, knotY - _radius * 0.04)
+        ..lineTo(centre.dx, knotY + _radius * 0.16)
+        ..close(),
+      Paint()..color = _darken(color, 0.12).withValues(alpha: _alpha),
+    );
+  }
+
+  void _renderHighlight(Canvas canvas, Offset centre) {
+    // The wet-look glint. Two blobs read as a curved surface; one reads as a
+    // smudge.
+    canvas.drawOval(
+      Rect.fromCenter(
+        center: Offset(centre.dx - _radius * 0.38, centre.dy - _radius * 0.52),
+        width: _radius * 0.46,
+        height: _radius * 0.66,
+      ),
+      Paint()..color = Colors.white.withValues(alpha: 0.5 * _alpha),
+    );
     canvas.drawCircle(
-      Offset(centre.dx, centre.dy + _radius),
-      _radius * 0.13,
-      Paint()..color = color,
+      Offset(centre.dx - _radius * 0.18, centre.dy - _radius * 0.16),
+      _radius * 0.1,
+      Paint()..color = Colors.white.withValues(alpha: 0.28 * _alpha),
     );
+  }
 
-    // Highlight — makes it read as round and shiny rather than a flat disc.
-    canvas.drawOval(
-      Rect.fromCenter(
-        center: Offset(centre.dx - _radius * 0.35, centre.dy - _radius * 0.5),
-        width: _radius * 0.5,
-        height: _radius * 0.7,
-      ),
-      Paint()..color = Colors.white.withValues(alpha: 0.45),
-    );
+  void _renderGlitter(Canvas canvas, Offset centre) {
+    // Three small stars twinkling out of phase with each other. Twinkle, not
+    // flash: alpha never leaves the 0.15-0.85 band, and nothing strobes
+    // (CLAUDE.md §3 — no flashing).
+    const spots = [Offset(-0.3, 0.25), Offset(0.28, -0.1), Offset(0.02, 0.5)];
+    for (var i = 0; i < spots.length; i++) {
+      final twinkle = 0.5 + 0.35 * sin(_time * 2.4 + i * 2.1);
+      canvas.drawPath(
+        KidShapes.star(
+          Offset(
+            centre.dx + spots[i].dx * _radius,
+            centre.dy + spots[i].dy * _radius,
+          ),
+          _radius * 0.18,
+        ),
+        Paint()..color = Colors.white.withValues(alpha: twinkle * _alpha),
+      );
+    }
   }
 
   @override
@@ -117,20 +236,28 @@ class Balloon extends PositionComponent with TapCallbacks {
     pop();
   }
 
-  /// Pops with a quick squash-and-vanish, then removes itself.
+  /// Pops with a quick squash-and-vanish and leaves a [PopBurst] behind.
   void pop() {
-    if (_isPopping) return;
+    if (isSpent) return;
     _isPopping = true;
     onPopped(this);
 
-    // Brief scale-up then out — the balloon "bursts" rather than blinking off.
+    parent?.add(PopBurst(
+      color: color,
+      radius: _radius,
+      position: position.clone(),
+      sparkly: sparkly,
+    ));
+
+    // Brief over-inflate then out — the balloon "bursts" rather than blinking
+    // off, and the burst above takes over where it disappears.
     add(ScaleEffect.to(
       Vector2.all(1.35),
-      EffectController(duration: 0.08),
+      EffectController(duration: 0.07),
       onComplete: () {
         add(ScaleEffect.to(
           Vector2.zero(),
-          EffectController(duration: 0.12),
+          EffectController(duration: 0.1),
           onComplete: removeFromParent,
         ));
       },
@@ -138,6 +265,16 @@ class Balloon extends PositionComponent with TapCallbacks {
   }
 
   /// A balloon that reached the top and drifted away. NOT a failure: nothing is
-  /// lost, no sound plays, no counter moves (CLAUDE.md §3).
-  void driftAway() => removeFromParent();
+  /// lost, no sound plays, no counter moves (CLAUDE.md §3). It fades out over
+  /// the next fraction of a second and then removes itself.
+  void driftAway() {
+    if (isSpent) return;
+    _isLeaving = true;
+  }
+
+  static Color _lighten(Color c, double amount) =>
+      Color.lerp(c, Colors.white, amount)!;
+
+  static Color _darken(Color c, double amount) =>
+      Color.lerp(c, KidPalette.ink, amount)!;
 }

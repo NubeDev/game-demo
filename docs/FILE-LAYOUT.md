@@ -12,13 +12,16 @@ lib/
 │   └── balloon_pop/
 │       ├── balloon_pop_game.dart      ← the FlameGame
 │       ├── balloon_pop_screen.dart    ← the Flutter screen hosting it
-│       ├── components/                ← balloon, spawner, …
+│       ├── components/                ← balloon, pop burst, sky, progress stars
 │       ├── assets.dart                ← every asset path this game uses, in one place
 │       └── README.md                  ← what this game is and why it is built this way
 │
 ├── shared/                ← reusable across games
 │   ├── celebration.dart   ← the reward effect
-│   ├── sounds.dart        ← named cues over AudioController
+│   ├── kid_sounds.dart    ← named cues over AudioController
+│   ├── kid_haptics.dart   ← the physical answer to a success (never to a mistake)
+│   ├── kid_palette.dart   ← the colour vocabulary
+│   ├── kid_shapes.dart    ← shapes used in more than one place
 │   ├── home_button.dart   ← the one home button
 │   ├── parental_gate.dart ← the gate (the one place text is required)
 │   ├── rive_character.dart← Rive component, data-binding driven

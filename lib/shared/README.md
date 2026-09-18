@@ -6,7 +6,9 @@ consistent. A child should learn what a celebration means in one game and recogn
 | File | What it is |
 |---|---|
 | `kid_palette.dart` | The colour vocabulary |
+| `kid_shapes.dart` | Shapes drawn in more than one place — the star, the cloud |
 | `kid_sounds.dart` | Named cues (`pop`, `celebrate`, `wobble`, `tap`) over the template's `AudioController` |
+| `kid_haptics.dart` | The small physical answer to a success. Never to a mistake |
 | `home_button.dart` | The one way out of any game |
 | `parental_gate.dart` | The 3-second hold protecting the parent area |
 | `celebration.dart` | Confetti — the reward loop |
@@ -23,8 +25,17 @@ A game calls `sounds.pop()`, not an asset path, so swapping audio later is a one
 Everything routes through `AudioController`, which already honours the mute setting, so no game has
 to check whether sound is on.
 
-The cues currently reuse the template's arcade sfx and **need replacing**. A realistic balloon
-*bang* startles a five-year-old; the pop wants to be a soft "boop".
+The cues are synthesised placeholders from [`tools/make_sfx.py`](../../tools/make_sfx.py) — a soft
+rising "boop" rather than a realistic balloon *bang*, which would startle a five-year-old and fires
+many times a minute. Real recordings drop into `assets/sfx/` under the same names, with no Dart
+change.
+
+**`pop(progress:)` climbs a ladder.** The `kid_pop*` samples are ascending notes, and `pop` picks
+the rung from how full the current set is rather than at random — so the cue rises as the child gets
+closer and the celebration lands as the resolution of a phrase. This is the only progress signal a
+child who cannot read a number can *hear*, and it matters: it works with the sound on and the screen
+barely looked at. Nothing assumes how many rungs there are, so a deeper ladder is purely a matter of
+generating more samples.
 
 ### `parental_gate.dart` — the text is the barrier
 
@@ -41,6 +52,17 @@ Chosen over a PIN (state to store and forget), a date-of-birth question (that *i
 and arithmetic (needs localising). It is not security against a determined older child — it is a
 deliberate-action check, which is what the store programmes actually require.
 
+### `kid_haptics.dart` — success only, and always optional
+
+A five-year-old's finger is ahead of their eye: a pop they can *feel* lands even while they are
+already looking at the next balloon. Three rules are load-bearing:
+
+- **Light end of the scale only.** A heavy buzz startles; a long one reads as an alarm.
+- **Never after a mistake.** There is no haptic on the wobble cue. A physical jolt following a wrong
+  tap is punishment, however small, and CLAUDE.md §3 has no room for it.
+- **Never depended on.** Every call is fire-and-forget and swallows failure, so desktop, the
+  simulator and tablets with no vibrator simply do nothing.
+
 ### `home_button.dart` — no confirmation dialog
 
 A child cannot read "Are you sure?", and leaving costs nothing because there is no score to lose.
@@ -52,8 +74,22 @@ With no score and no winning, this is the *only* thing that says "you did it". S
 big — but pieces fall over 1.6–2.8s with a small stagger, tumble slowly, and fade out. A fast flash
 of confetti would be a photosensitivity risk and would read as frantic rather than joyful.
 
+A quarter of the pieces rise from the bottom instead of falling. Confetti that all moves one way
+reads as weather; a few pieces going the other way reads as something bubbling over.
+
+`puff(position)` is the small sibling — a local shower at one point, used for the rare sparkly
+balloon. Deliberately about a fifth the size of a `burst`: if a single lucky balloon got a full
+celebration, the every-ten-pops celebration would stop meaning anything.
+
 Pieces remove themselves when their fade finishes, so repeated celebrations can't accumulate.
 There's a regression test for that in `test/balloon_pop_test.dart`.
+
+### `kid_shapes.dart` — a star that is actually a star
+
+Placeholder art is "simple coloured shapes" (CLAUDE.md §5), and the progress stars were circles
+because a circle is one call. But a five-year-old is *learning shapes*: a star that is a dot teaches
+them nothing and reads as a full stop. These are the real outlines, so the placeholder stage still
+looks like what it means.
 
 ### `rive_character.dart` — the 0.14 API, and failing softly
 

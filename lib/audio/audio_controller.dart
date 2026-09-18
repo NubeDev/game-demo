@@ -32,6 +32,10 @@ class AudioController {
 
   ValueNotifier<AppLifecycleState>? _lifecycleNotifier;
 
+  /// The song the current screen asked for, so a repeat request is a no-op
+  /// and does not restart the track on every rebuild.
+  Song? _requestedSong;
+
   /// Creates an instance that plays music and sound.
   ///
   /// Use [polyphony] to configure the number of sound effects (SFX) that can
@@ -78,7 +82,12 @@ class AudioController {
   /// The controller will ignore this call when the attached settings'
   /// [SettingsController.audioOn] is `true` or if its
   /// [SettingsController.soundsOn] is `false`.
-  void playSfx(SfxType type) {
+  ///
+  /// [variant] picks a specific file from the type's list instead of a random
+  /// one, wrapping if it is out of range. Games use it to play a *sequence* of
+  /// cues rather than a scatter — see `KidSounds.pop`. Leave it null for the
+  /// usual random variation.
+  void playSfx(SfxType type, {int? variant}) {
     final audioOn = _settings?.audioOn.value ?? false;
     if (!audioOn) {
       _log.fine(() => 'Ignoring playing sound ($type) because audio is muted.');
@@ -94,7 +103,9 @@ class AudioController {
 
     _log.fine(() => 'Playing sound: $type');
     final options = soundTypeToFilename(type);
-    final filename = options[_random.nextInt(options.length)];
+    final filename = variant == null
+        ? options[_random.nextInt(options.length)]
+        : options[variant.abs() % options.length];
     _log.fine(() => '- Chosen filename: $filename');
 
     final currentPlayer = _sfxPlayers[_currentSfxPlayer];
@@ -103,6 +114,32 @@ class AudioController {
       volume: soundTypeToVolume(type),
     );
     _currentSfxPlayer = (_currentSfxPlayer + 1) % _sfxPlayers.length;
+  }
+
+  /// Switches background music to [song], if it is not already playing.
+  ///
+  /// Used to give each screen its own music (a calm track during play, a
+  /// brighter one in the menu) instead of shuffling arcade tracks underneath
+  /// whatever the child is doing. Respects the mute settings exactly like
+  /// [playSfx]: if audio or music is off, the choice is remembered but nothing
+  /// starts playing, so unmuting later lands on the right track.
+  void playSong(Song song) {
+    if (_requestedSong == song) return;
+    _requestedSong = song;
+
+    // Put the requested song at the front, so the playlist rolls on from here
+    // when it finishes rather than jumping back to the shuffled order.
+    _playlist.remove(song);
+    _playlist.addFirst(song);
+
+    final audioOn = _settings?.audioOn.value ?? false;
+    final musicOn = _settings?.musicOn.value ?? false;
+    if (!audioOn || !musicOn) {
+      _log.fine(() => 'Music is off; $song will start when it is turned on.');
+      return;
+    }
+
+    unawaited(_playCurrentSongInPlaylist());
   }
 
   /// Enables the [AudioController] to listen to [AppLifecycleState] events,
@@ -201,7 +238,12 @@ class AudioController {
   Future<void> _playCurrentSongInPlaylist() async {
     _log.info(() => 'Playing ${_playlist.first} now.');
     try {
-      await _musicPlayer.play(AssetSource('music/${_playlist.first.filename}'));
+      await _musicPlayer.play(
+        AssetSource('music/${_playlist.first.filename}'),
+        // Background music sits low on purpose: the sound cues are what the
+        // child is responding to, and must never have to compete with it.
+        volume: 0.25,
+      );
     } catch (e) {
       _log.severe('Could not play song ${_playlist.first}', e);
     }

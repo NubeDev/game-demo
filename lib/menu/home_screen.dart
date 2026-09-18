@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../audio/audio_controller.dart';
+import '../audio/songs.dart';
 import '../shared/kid_palette.dart';
 import '../shared/kid_sounds.dart';
 import '../shared/parental_gate.dart';
@@ -18,8 +19,19 @@ import 'game_tile.dart';
 ///  * Same layout every time — no "recently played", no reordering.
 ///    Predictability is the feature.
 ///  * The settings cog is small, grey and adult-looking, and is gated.
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<AudioController>().playSong(Songs.menu);
+  }
 
   @override
   Widget build(BuildContext context) {

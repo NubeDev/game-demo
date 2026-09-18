@@ -14,6 +14,13 @@ class KidPalette {
   static const skyTop = Color(0xFFBDE8FF);
   static const skyBottom = Color(0xFFEAF8FF);
 
+  /// The sun and the ground behind the games. Scenery, never a play object —
+  /// these are the only colours a child is not meant to reach for, so they sit
+  /// well below [playColors] in saturation.
+  static const sun = Color(0xFFFFE9A3);
+  static const hillFar = Color(0xFFBDEBB4);
+  static const hillNear = Color(0xFF9FDF95);
+
   /// Menu background.
   static const menuBackground = Color(0xFFFFF6E0);
 
@@ -28,8 +35,11 @@ class KidPalette {
     Color(0xFFB07BE8), // purple
   ];
 
-  /// Used for the progress dots and celebration stars.
+  /// Used for the progress stars and celebration stars.
   static const star = Color(0xFFFFD23F);
+  /// The brighter core of a just-filled star, so the newest one is the one the
+  /// eye lands on.
+  static const starBright = Color(0xFFFFF0A8);
   /// Unfilled dots. Needs to read clearly against the pale sky, so this is a
   /// soft ink wash rather than translucent white.
   static const starEmpty = Color(0x334A3B33);
