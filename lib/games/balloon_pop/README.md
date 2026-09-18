@@ -14,6 +14,45 @@ lost.
 | `components/progress_stars.dart` | Progress toward the next celebration |
 | `assets.dart` | Every asset path, in one place |
 
+## What there is to *do*
+
+Tapping one balloon at a time is a thing to look at, not a thing to play. Three mechanics give the
+child something to **cause**.
+
+**Bunches chain.** Balloons arrive in bunches of three of the **same colour**, and popping one sets
+its neighbours off in a ripple 110ms apart — which cascades, because each link sets off its own
+neighbours. One tap, three or more pops, with the pop note climbing through the whole run. It is the
+best thing in the game and the first thing a child discovers by accident.
+
+One colour is the whole point. A mixed cluster is clutter; a matching one is a pattern a child can
+learn to look for, which is the closest this game gets to a skill — and it is a skill with no
+failure state attached, because a mistimed tap just pops one balloon instead of three.
+
+Two invariants keep it working, both pinned by tests: bunches are laid out at 1.35 radii apart so
+even the widest bunch sits inside `chainRadius` end to end (otherwise bunches silently stop
+chaining, with no error to notice), and `catchesRipple` refuses a balloon that is already on its way
+out, so a ripple can never bounce between two balloons forever.
+
+**Big balloons take three taps.** `bigBalloonRadius` is 74 — visibly the biggest thing in the sky —
+and it **swells on every tap**. That swelling is the entire instruction: a five-year-old cannot be
+told "keep going", so the balloon has to say it. It rises slower than anything else, because three
+taps has to be a promise the game can keep; a big balloon that floated off before it could be tapped
+three times would make the swelling a lie.
+
+Every tap counts as progress, including the two that don't finish it. Progress only rises, so
+rewarding the unfinished taps costs nothing, and a child who taps once and wanders off still got
+something. On the third it bursts into a **shower of five little balloons** — the reward for popping
+is more to pop, never a bigger number.
+
+**The sun and the clouds answer.** A five-year-old taps everything, and at this age a thing that
+does nothing when touched is not scenery, it is broken. The sun turns out a set of rays; a cloud
+squashes and puffs sparkles. Neither fills a star, so balloons stay the point — but it means a tap
+that missed every balloon can be *something the child did* rather than a near-miss.
+
+`Sky.containsLocalPoint` is overridden so the sky only claims taps that actually land on the sun or
+a cloud. Everything else falls straight through to the game's own handler, and balloons — at a
+higher priority — always win.
+
 ## Three decisions about hands, not balloons
 
 These are the difference between a game a five-year-old can play and one they can only watch.
@@ -70,8 +109,11 @@ the instant it means more progress, popping becomes something to be efficient at
 itself from a single time counter. A child pops many balloons a minute, so each pop has to stay
 cheap, and none of it may accumulate — there is a regression test for that.
 
-**Seven balloons, maximum.** Past `maxBalloons` the screen stops reading as "balloons in a sky" and
-starts reading as clutter, and a child who cannot choose just stabs at it.
+**Nine balloons, maximum — and a hard ceiling above that.** Past `maxBalloons` the screen stops
+reading as "balloons in a sky" and starts reading as clutter, and a child who cannot choose just
+stabs at it. A big balloon's shower deliberately ignores that cap, because the brief moment of
+plenty is the reward for three taps; `maxBalloonsHard` is the backstop that stops that exception
+stacking with whatever mechanic gets added next.
 
 **The progress row has a tray behind it.** Clouds drift through that corner, and an empty star on
 white cloud loses nearly all its contrast. The tray guarantees the row always sits on the same
@@ -160,7 +202,13 @@ Also: nothing startling. No sudden lunges toward the screen, no loud-looking mot
   to** — they were verified numerically. See `tools/README.md`.
 - A deeper pop ladder. There are only three rungs, because this machine has no mp3 encoder to make
   more; `tools/make_sfx.py` is ready for it and no Dart change is needed.
-- Tune spawn rate, rise speed, balloon sizes and the swipe reach against an actual child. Every
-  number in this game is a guess until then.
+- Tune spawn rate, rise speed, balloon sizes, the swipe reach, `chainRadius` and `bunchInEvery`
+  against an actual child. Every number in this game is a guess until then.
+- **Watch for crowding.** Bunches of three plus showers of five make a much fuller sky than before.
+  It looked right in screenshots and the hard ceiling bounds it, but "calm" is a judgement only a
+  real screen in real hands can make.
+- A **sticker book** is the obvious next thing: something that persists between sessions, so the
+  celebrations add up to more than the moment. `shared_preferences` is already wired in for
+  progress.
 - The Rive stand-in now sits on the new hills, where it reads as a small phone lying in the grass.
   It was always a wire test rather than art (see above); it is more obviously wrong now.

@@ -26,9 +26,22 @@ import 'components/sky.dart';
 ///  * there is no timer, no miss counter, no accuracy, no streak;
 ///  * the progress stars only ever fill.
 ///
-/// Three things here are about a five-year-old's hands rather than about
-/// balloons, and are the difference between a game they can play and one they
-/// can only watch:
+/// ## What there is to *do*
+///
+/// Tapping one balloon at a time is a thing to look at, not a thing to play.
+/// Three mechanics give the child something to cause:
+///
+///  * **Bunches chain.** Balloons arrive in same-colour bunches, and popping
+///    one sets its neighbours off in a ripple ([_enqueueChain]) with the pop
+///    note climbing through the whole run. One tap, eight pops — cause and
+///    effect, and the best thing in the game to discover.
+///  * **Big balloons take three taps** and swell between them ([Balloon.taps]),
+///    then burst into a shower of little ones. Every tap counts as progress, so
+///    the middle taps are never wasted.
+///  * **The sun and the clouds answer.** A tap that missed every balloon can
+///    still be something the child did, rather than a near-miss. See [Sky].
+///
+/// ## What is about a five-year-old's hands
 ///
 ///  * **A dragged finger pops.** Swiping is easier than aiming, and it is what
 ///    a child does naturally when they get excited. See [onDragUpdate].
@@ -54,10 +67,45 @@ class BalloonPopGame extends FlameGame with TapCallbacks, DragCallbacks {
   /// At most this many balloons at once. Past this the screen stops reading as
   /// "balloons in a sky" and starts reading as clutter, and a child who cannot
   /// choose just stabs.
-  static const maxBalloons = 7;
+  static const maxBalloons = 9;
+
+  /// An absolute ceiling that even a shower cannot pass.
+  ///
+  /// [maxBalloons] is the limit for ordinary spawning; a big balloon's shower
+  /// deliberately ignores it, because that brief moment of plenty is the reward
+  /// for three taps. This is the backstop: without it, a mechanic that spawns
+  /// past the cap can stack with the next one, and "bright, friendly, calm"
+  /// quietly becomes a screen a child cannot read (CLAUDE.md §3).
+  static const maxBalloonsHard = maxBalloons + bigBalloonShower;
 
   /// Roughly one balloon in this many sparkles. Rare enough to stay a treat.
   static const sparklyInEvery = 7;
+
+  /// How many balloons in a bunch, and how often a spawn is a bunch rather
+  /// than a single balloon. Bunches are what make chains happen at all: with
+  /// six colours scattered at random, two of a colour are almost never
+  /// neighbours, and the child would never discover the ripple.
+  static const bunchSize = 3;
+  static const bunchInEvery = 3;
+
+  /// How often a spawn is a big three-tap balloon.
+  static const bigInEvery = 8;
+
+  /// Taps a big balloon takes, and the radius it is drawn at.
+  static const bigBalloonTaps = 3;
+  static const bigBalloonRadius = 74.0;
+
+  /// How many little balloons a big one bursts into.
+  static const bigBalloonShower = 5;
+
+  /// How close a same-colour balloon has to be to catch the ripple, and the
+  /// gap between links in it.
+  ///
+  /// The gap matters as much as the radius: popped all at once a chain is one
+  /// loud noise, but staggered it is a *run* — the child hears the pop note
+  /// climb link by link and sees the ripple travel outward.
+  static const chainRadius = 170.0;
+  static const chainDelay = 0.11;
 
   /// How far from a dragged finger a balloon still pops, beyond its own touch
   /// target. A swipe is coarser than a tap, so it is more forgiving still.
@@ -93,13 +141,33 @@ class BalloonPopGame extends FlameGame with TapCallbacks, DragCallbacks {
   /// Paused only while a celebration plays, so the screen isn't busy at once.
   bool _spawning = true;
 
+  /// Balloons waiting their turn in a ripple, and the set of them, so a
+  /// balloon caught by two chains at once is only queued once.
+  final _pendingChain = <_ChainLink>[];
+  final _queuedForChain = <Balloon>{};
+
+  /// Links fired since the game started. Exposed for tests, which cannot watch
+  /// a ripple travel.
+  @visibleForTesting
+  int debugChainLinksFired = 0;
+
   @override
   Color backgroundColor() => KidPalette.skyBottom;
 
   @override
   Future<void> onLoad() async {
-    // The drifting sky, behind everything.
-    add(Sky());
+    // The drifting sky, behind everything. It claims only taps that land on
+    // the sun or a cloud — see Sky.containsLocalPoint.
+    add(Sky(
+      onSunTapped: (at) {
+        sounds.tap();
+        _celebration.puff(at, pieces: 8);
+      },
+      onCloudTapped: (at) {
+        sounds.tap();
+        _celebration.puff(at, pieces: 6);
+      },
+    ));
 
     _stars = ProgressStars(
       total: popsPerCelebration,
@@ -128,21 +196,22 @@ class BalloonPopGame extends FlameGame with TapCallbacks, DragCallbacks {
     _character = character;
     add(character);
 
-    // A few balloons to start, so the screen is never empty on arrival.
-    for (var i = 0; i < 3; i++) {
-      _spawnBalloon(startY: size.y * (0.7 + i * 0.22));
-    }
+    // A bunch and a single to start, so the screen is never empty on arrival —
+    // and so the ripple is there to be discovered in the first few seconds.
+    _spawnBunch(startY: size.y * 0.82);
+    _spawnBalloon(startY: size.y * 1.05);
   }
 
   @override
   void update(double dt) {
     super.update(dt);
     _sinceLastMissCue += dt;
+    if (_pendingChain.isNotEmpty) _advanceChain(dt);
 
     if (_spawning) {
       _spawnCountdown -= dt;
       if (_spawnCountdown <= 0) {
-        _spawnBalloon();
+        _spawnSomething();
         // Sparse on purpose: too many balloons at once reads as chaos.
         // 1.2-2.2s keeps a few on screen without crowding.
         _spawnCountdown = 1.2 + _random.nextDouble() * 1.0;
@@ -157,28 +226,127 @@ class BalloonPopGame extends FlameGame with TapCallbacks, DragCallbacks {
     }
   }
 
-  void _spawnBalloon({double? startY}) {
-    if (children.query<Balloon>().length >= maxBalloons) return;
+  /// One spawn tick: usually a bunch, sometimes a big balloon, otherwise a
+  /// single. Weighted so a child sees a bunch within the first few seconds —
+  /// the ripple is the best thing here and it has to be discoverable.
+  void _spawnSomething() {
+    if (_random.nextInt(bigInEvery) == 0) {
+      _spawnBigBalloon();
+    } else if (_random.nextInt(bunchInEvery) == 0) {
+      _spawnBunch();
+    } else {
+      _spawnBalloon();
+    }
+  }
 
-    final radius = balloonRadii[_random.nextInt(balloonRadii.length)];
+  void _spawnBalloon({
+    double? startY,
+    Color? color,
+    double? radius,
+    Vector2? at,
+    int taps = 1,
+    double? riseSpeed,
+    bool force = false,
+  }) {
+    final onScreen = children.query<Balloon>().length;
+    if (onScreen >= maxBalloonsHard) return;
+    if (!force && onScreen >= maxBalloons) return;
+
+    final r = radius ?? balloonRadii[_random.nextInt(balloonRadii.length)];
     // Keep clear of the screen edges so nothing spawns half-off.
-    final margin = radius * 1.6;
+    final margin = r * 1.6;
     final x = margin + _random.nextDouble() * max(1.0, size.x - margin * 2);
 
     add(Balloon(
-      color: KidPalette.playColors[_random.nextInt(
-        KidPalette.playColors.length,
-      )],
+      color: color ??
+          KidPalette.playColors[_random.nextInt(
+            KidPalette.playColors.length,
+          )],
       // Slow and varied, and the bigger the balloon the slower it climbs — so
       // the easiest target is also the one that hangs around longest. The
       // slowest is well within a five-year-old's reach; the fastest still gives
       // several seconds of screen time.
-      riseSpeed: _riseSpeedFor(radius),
-      radius: radius,
+      riseSpeed: riseSpeed ?? _riseSpeedFor(r),
+      radius: r,
       sparkly: _random.nextInt(sparklyInEvery) == 0,
-      position: Vector2(x, startY ?? size.y + radius * 2),
+      taps: taps,
+      position: at ?? Vector2(x, startY ?? size.y + r * 2),
       onPopped: _onBalloonPopped,
     ));
+  }
+
+  /// A bunch: [bunchSize] balloons of the SAME colour, clustered close enough
+  /// that popping one ripples through the rest.
+  ///
+  /// One colour is the whole point. A mixed cluster is just clutter; a matching
+  /// one is a thing the child can learn to look for, and the first time they
+  /// hit the middle of one is the best moment in the game.
+  void _spawnBunch({double? startY}) {
+    if (children.query<Balloon>().length + bunchSize > maxBalloons) {
+      // No room for a whole bunch. A partial one would teach the ripple
+      // unreliably, so send a single instead.
+      _spawnBalloon(startY: startY);
+      return;
+    }
+
+    final color =
+        KidPalette.playColors[_random.nextInt(KidPalette.playColors.length)];
+    final radius = balloonRadii[_random.nextInt(balloonRadii.length)];
+    // One rise speed for the whole bunch, so it stays a bunch on the way up
+    // rather than stringing out and quietly stopping being one.
+    final speed = _riseSpeedFor(radius);
+    final margin = radius * 2.4;
+    final centreX = margin + _random.nextDouble() * max(1.0, size.x - margin * 2);
+    final baseY = startY ?? size.y + radius * 2.4;
+
+    for (var i = 0; i < bunchSize; i++) {
+      // Spread well inside chainRadius, so the ripple is reliable even after
+      // they have drifted apart a little.
+      final spread = radius * 1.35;
+      _spawnBalloon(
+        color: color,
+        radius: radius,
+        riseSpeed: speed,
+        force: true,
+        at: Vector2(
+          (centreX + (i - 1) * spread).clamp(margin, max(margin, size.x - margin)),
+          baseY + (i.isOdd ? radius * 0.85 : 0),
+        ),
+      );
+    }
+  }
+
+  /// A big balloon: three taps, swelling between them, then a shower.
+  void _spawnBigBalloon({double? startY}) {
+    _spawnBalloon(
+      radius: bigBalloonRadius,
+      taps: bigBalloonTaps,
+      // Slower than anything else. It has to be tappable three times before it
+      // leaves, or the three taps are a promise the game does not keep.
+      riseSpeed: 22 + _random.nextDouble() * 6,
+      startY: startY,
+    );
+  }
+
+  /// A big balloon bursting: little balloons thrown out of it, already rising.
+  ///
+  /// This is the payoff for three taps, and it is deliberately *more to do*
+  /// rather than more progress — the reward for popping is always another thing
+  /// to pop (CLAUDE.md §3: nothing to be efficient at).
+  void _burstIntoLittleOnes(Balloon source) {
+    final small = balloonRadii.reduce(min);
+    for (var i = 0; i < bigBalloonShower; i++) {
+      final spread = (i - (bigBalloonShower - 1) / 2) * small * 1.6;
+      _spawnBalloon(
+        radius: small,
+        force: true,
+        riseSpeed: 40 + _random.nextDouble() * 22,
+        at: Vector2(
+          (source.position.x + spread).clamp(small * 1.6, max(small * 1.6, size.x - small * 1.6)),
+          source.position.y + (i.isOdd ? small : 0),
+        ),
+      );
+    }
   }
 
   /// Big balloons rise slowly, small ones a little quicker. Never fast enough
@@ -189,24 +357,80 @@ class BalloonPopGame extends FlameGame with TapCallbacks, DragCallbacks {
     return 30 + smallness * 18 + _random.nextDouble() * 14;
   }
 
+  /// Every tap that counted, on any balloon — including the squeezes of a big
+  /// one, which is why this checks [Balloon.isSpent] before doing anything that
+  /// belongs to a balloon actually bursting.
   void _onBalloonPopped(Balloon balloon) {
     _popsThisRound++;
     _stars.filled = _popsThisRound;
 
-    // The cue climbs as the stars fill — see KidSounds.pop.
+    // The cue climbs as the stars fill — see KidSounds.pop. Through a ripple
+    // this becomes a rising run rather than one noise repeated.
     sounds.pop(progress: _popsThisRound / popsPerCelebration);
     KidHaptics.pop();
 
-    // A sparkly balloon pays out where the child was looking. It is worth no
-    // extra progress: there is no score, so a lucky balloon can only ever be a
-    // better moment, never a bigger number (CLAUDE.md §3).
-    if (balloon.sparkly) _celebration.puff(balloon.position.clone());
+    if (balloon.isSpent) {
+      // A sparkly balloon pays out where the child was looking. It is worth no
+      // extra progress: there is no score, so a lucky balloon can only ever be
+      // a better moment, never a bigger number (CLAUDE.md §3).
+      if (balloon.sparkly) _celebration.puff(balloon.position.clone());
+      if (balloon.isBig) _burstIntoLittleOnes(balloon);
+      _enqueueChain(balloon);
+    }
 
     // Build anticipation as the stars fill.
     _character?.setExcitement(_popsThisRound / popsPerCelebration);
 
     if (_popsThisRound >= popsPerCelebration) {
       _celebrate();
+    }
+  }
+
+  /// Sets off the ripple: every same-colour balloon near [source] is queued to
+  /// pop a moment later, and each of those queues its own neighbours in turn.
+  ///
+  /// It cannot run away: a balloon latches the moment it starts popping, and
+  /// [_queuedForChain] stops one being queued twice, so the ripple visits each
+  /// balloon at most once and dies out on its own.
+  void _enqueueChain(Balloon source) {
+    for (final other in children.query<Balloon>()) {
+      if (_queuedForChain.contains(other)) continue;
+      if (!catchesRipple(source, other)) continue;
+      _queuedForChain.add(other);
+      _pendingChain.add(_ChainLink(other, chainDelay));
+    }
+  }
+
+  /// Whether [other] is caught by a ripple starting at [source].
+  ///
+  /// Same colour, near enough, and not already on its way out. Static and pure
+  /// so it can be tested without loading the game, which needs
+  /// `RiveNative.init()` and so cannot run under `flutter test`.
+  static bool catchesRipple(Balloon source, Balloon other) {
+    if (other == source || other.isSpent) return false;
+    if (other.color != source.color) return false;
+    return other.position.distanceTo(source.position) <= chainRadius;
+  }
+
+  /// Fires whichever links are due this frame.
+  ///
+  /// The pops happen after the queue has been drained rather than during, so a
+  /// link that queues further links cannot disturb the list being walked.
+  void _advanceChain(double dt) {
+    final due = <Balloon>[];
+    _pendingChain.removeWhere((link) {
+      link.delay -= dt;
+      if (link.delay > 0) return false;
+      due.add(link.balloon);
+      return true;
+    });
+
+    for (final balloon in due) {
+      _queuedForChain.remove(balloon);
+      // It may have been popped by a finger, or drifted off, while it waited.
+      if (balloon.isSpent || !balloon.isMounted) continue;
+      debugChainLinksFired++;
+      balloon.pop();
     }
   }
 
@@ -300,13 +524,22 @@ class BalloonPopGame extends FlameGame with TapCallbacks, DragCallbacks {
       onTick: () {
         _spawning = true;
         _character?.setExcitement(0);
-        // Come back generous: a couple of balloons already on their way up, so
-        // the moment after a celebration is the fullest the sky ever looks.
-        _spawnBalloon();
+        // Come back generous: a whole bunch already on its way up, so the
+        // moment after a celebration is the fullest the sky ever looks — and
+        // the first thing back is the thing most worth popping.
+        _spawnBunch();
         _spawnBalloon(startY: size.y * 0.9);
       },
     ));
   }
+}
+
+/// One balloon waiting its turn in a ripple.
+class _ChainLink {
+  _ChainLink(this.balloon, this.delay);
+
+  final Balloon balloon;
+  double delay;
 }
 
 /// What the character's `.riv` file must expose.

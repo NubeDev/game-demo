@@ -4,9 +4,11 @@ Where we are, right now. Updated at the end of every session.
 
 - **Last updated:** 2026-09-18
 - **Now:** the app is playable, has its own sound, and Balloon Pop has had a second pass for *feel*.
-  Picture menu → Balloon Pop → pop or **swipe** balloons through a drifting sky → stars spring in as
-  the pop note climbs → confetti → repeat, with a parent-gated settings screen. All placeholder art
-  (drawn in code) and placeholder (but kid-appropriate) audio.
+  Picture menu → Balloon Pop → pop or **swipe** balloons through a drifting sky → **same-colour
+  bunches ripple from one tap**, **big balloons take three taps then shower little ones**, the sun
+  and clouds answer a poke → stars spring in as the pop note climbs → confetti → repeat, with a
+  parent-gated settings screen. All placeholder art (drawn in code) and placeholder (but
+  kid-appropriate) audio.
 - **Next:** play it on a real tablet with a real child. Everything left is either art, sound, or
   tuning that only a child can settle.
 
@@ -20,14 +22,15 @@ Where we are, right now. Updated at the end of every session.
 | 4 | Balloon Pop — the first mini-game | **done** |
 | 5 | Rive character reacting to pops, via data binding | **done** (stand-in art) |
 | 6 | Kid sound cues + per-screen music, replacing the arcade sfx | **done** (placeholder audio) |
-| 7 | Balloon Pop second pass: swipe-to-pop, burst, living sky, animated stars, pop ladder | **done** |
+| 7 | Balloon Pop — feel: swipe-to-pop, burst, living sky, animated stars, pop ladder | **done** |
+| 8 | Balloon Pop — mechanics: chaining colour bunches, three-tap big balloons, a sky that answers | **done** |
 
 ## Build health
 
 | Check | State | Notes |
 |---|---|---|
 | `flutter analyze` | clean | 0 issues |
-| `flutter test` | passing | 29 tests (was 19) |
+| `flutter test` | passing | 38 tests (was 19) |
 | Android APK | builds | debug APK; `rive_native` links |
 | Web (dev only) | runs | used to drive and screenshot the app from this machine |
 | Played, headless | **yes** | menu → swipe → 10 pops → celebration → home, 1280x720 landscape, no console or page errors |
@@ -51,7 +54,9 @@ From the second pass, confirmed on screen in a driven browser session: a **swipe
 it passes through**; the sky, sun, parallax clouds and hills render and drift; the shred-and-ring
 burst appears in the popped balloon's colour and clears itself; sparkly balloons fire a local puff;
 the star row springs a newly earned star, stays legible over a drifting cloud, resets under the
-confetti, and the celebration mixes falling and rising pieces. Pinned by test: the smallest balloon
+confetti, and the celebration mixes falling and rising pieces. **A chain caught mid-ripple:** one
+tap on a bunch of three, next frame all three gone, three stars filled, three burst rings, and the
+odd-coloured balloon beside them untouched. The sun turns out rays on a tap. Pinned by test: the smallest balloon
 the game can spawn still clears 80x80; the pop ladder only ever climbs and never indexes off the end
 of the sample list; a balloon that drifted away cannot then be popped; bursts and confetti both
 remove themselves.
@@ -66,6 +71,11 @@ remove themselves.
 - **Whether the pop note climbing is audible as a climb.** Three rungs across ten pops may be too
   shallow to notice; it was verified as an index sequence, never heard.
 - Whether the light haptic on a pop helps or is just noise in the hand.
+- **Whether a child works out that the big balloon wants more taps.** The swelling is the only
+  instruction in the game, and it was never caught in a screenshot — only proven by test.
+- **Whether the sky is now too busy.** Bunches of three plus showers of five make it much fuller.
+  `maxBalloonsHard` bounds it; "calm" is still a judgement only real hands can make.
+- Whether the ripple is discovered at all, or whether bunches need to be more frequent.
 - Whether a Material icon on a coloured tile reads as "a game I can play".
 - **Whether the empty-sky cue reads as friendly or as "you missed."** This replaced the silence on a
   missed tap; if it reads as a failure signal it should come out.
@@ -83,6 +93,7 @@ remove themselves.
 | **Haptics have no settings switch.** Light impacts only, fire-and-forget, never on a mistake — but a parent who wants them off cannot turn them off | [shared README](../lib/shared/README.md) |
 | Template **arcade music** still plays under the games; only the sfx were replaced | [celebration scope](scope/shared/celebration-and-sound-scope.md) |
 | No real artwork; balloons are drawn shapes, tiles are Material icons | [balloon pop README](../lib/games/balloon_pop/README.md) |
+| **No persistence between sessions.** Celebrations do not add up to anything — a sticker book is the obvious next feature, and `shared_preferences` is already wired in | [roadmap](vision/roadmap.md) |
 | Rive character is `rewards.riv` — a mock rewards *screen*, not a character. Now sits on the new hills, where it reads as a small phone lying in the grass | same |
 | Landscape set in `main.dart`, **not** yet in the native manifests | [platform scope](scope/setup/landscape-and-platform-config-scope.md) |
 | `web/`, `windows/`, `linux/` folders still present; not shipping targets | same |

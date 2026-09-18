@@ -1,4 +1,4 @@
-# Games — Balloon Pop, second pass (session)
+# Games — Balloon Pop, second pass: feel, then mechanics (session)
 
 - Date: 2026-09-18
 - Scope: [../../scope/games/balloon-pop-scope.md](../../scope/games/balloon-pop-scope.md)
@@ -7,6 +7,14 @@
   [../shared/sound-effects-session.md](../shared/sound-effects-session.md)
 
 ## Goal
+
+Done in two passes, the second because the first was not enough. **Pass one** made the game *feel*
+better — burst, sky, animated stars, the pop ladder. The maintainer's response was the right one:
+*"you didn't make the game any funner?"* And they were correct. Pass one added juice, not play: the
+verb was still "tap the balloon", and no amount of nicer feedback on a single verb makes a game
+more fun. **Pass two** added mechanics. Both passes are recorded below, in that order.
+
+## Pass one — feel
 
 Balloon Pop was correct and dull. Every kid rule was obeyed, the loop worked, the tests were green —
 and a balloon popping was a circle that stopped existing over a flat gradient. The ask was to make
@@ -79,6 +87,31 @@ the bottom rather than all falling, and the new `puff` for local moments.
 `balloon_pop_game.dart`, `shared/celebration.dart`. Touched `shared/kid_sounds.dart`,
 `audio/audio_controller.dart`, `shared/kid_palette.dart` (sun, hills, `starBright`).
 
+## Pass two — actual mechanics
+
+**Bunches that chain.** Balloons now arrive in bunches of three of the same colour, and popping one
+sets its neighbours off in a ripple 110ms apart, cascading as each link sets off its own. One tap,
+a run of pops, the pop note climbing through all of them.
+
+The bunching is the half that matters and it is easy to miss: chain-popping same-colour neighbours
+on its own does almost nothing, because with six colours scattered at random two of a colour are
+practically never neighbours. Without bunches the mechanic would have existed in the code and never
+once fired in front of a child.
+
+**Big balloons.** `bigBalloonRadius` 74, three taps, visibly swelling on each — the swelling is the
+whole instruction, since a five-year-old cannot be told "keep going". Slower than anything else,
+because three taps has to be a promise the game can keep. Every tap counts as progress, including
+the two that don't finish it. The third bursts into a shower of five little balloons.
+
+**A sky that answers.** The sun turns out rays, a cloud squashes and puffs sparkles.
+`Sky.containsLocalPoint` is overridden so the sky claims *only* taps that land on the sun or a
+cloud — everything else falls through to the game's handler, and balloons at a higher priority
+always win. Neither fills a star, so balloons stay the point.
+
+**Files:** rewrote the spawn path in `balloon_pop_game.dart` (`_spawnSomething`, `_spawnBunch`,
+`_spawnBigBalloon`, `_burstIntoLittleOnes`, `_enqueueChain`, `_advanceChain`, `catchesRipple`), gave
+`Balloon` a `taps` count and a swelling `_squeeze`, and made `Sky` tappable.
+
 ## Decisions & alternatives
 
 **A pitch ladder from existing samples, not a playback rate.** The obvious way to make the pop climb
@@ -106,6 +139,30 @@ corner, and an empty star on white cloud loses almost all its contrast. The tray
 consistent background. It is the only progress signal a child who cannot read can see, so it cannot
 depend on what happens to be behind it.
 
+**Every tap on a big balloon counts, including the unfinished ones.** The alternative — progress
+only on the burst — makes the first two taps feel like nothing happened, which is the exact reading
+CLAUDE.md §3 forbids. Progress only ever rises, so paying out on a squeeze costs nothing, and a
+child who taps a big balloon once and wanders off still got something.
+
+**The chain is staggered, not instant.** Popping a bunch simultaneously is one loud noise. At 110ms
+apart it is a *run*: the note climbs link by link and the ripple visibly travels outward. The delay
+is the mechanic, not an implementation detail.
+
+**Chain pops are queued, then fired after the queue is drained.** Popping inside the loop that walks
+the queue means a link can append to the list being iterated. It cannot run away regardless — a
+balloon latches the moment it starts popping and `_queuedForChain` stops double-queueing — but the
+list mutation is a real bug waiting for a busier screen, so `_advanceChain` collects what is due
+first and pops afterwards.
+
+**A hard ceiling above `maxBalloons`.** A big balloon's shower deliberately ignores the cap, because
+that brief moment of plenty is the reward for three taps. That exception is fine on its own and
+dangerous as a precedent, so `maxBalloonsHard` bounds it: the next mechanic that spawns past the cap
+cannot stack with this one. This came out of looking at a screenshot and thinking the sky looked
+busy, not out of a test.
+
+**Big balloons are not exempt from chains.** A ripple that reaches one squeezes it, exactly like a
+finger would. Coherent: a chain link *is* a tap.
+
 **A drag over empty sky does not fire the wobble.** It would fire continuously, which is exactly the
 nagging the wobble's rate limit exists to prevent. A swipe that hits nothing stays silent.
 
@@ -120,15 +177,28 @@ flagged as an open thread rather than guessed at.
 
 ## Verified, and not
 
-Ran `flutter analyze` (clean), `flutter test` (**29 tests, 0 failures** — 10 new, up from 19), and
+Ran `flutter analyze` (clean), `flutter test` (**38 tests, 0 failures** — 19 new, up from 19), and
 `make privacy` (clean: nothing new touches the network; the only new import across the whole change
 is `flutter/services.dart` for `HapticFeedback`).
 
-**Then actually played it.** Built for web (`--no-web-resources-cdn`, since this box has no network)
-and drove it in headless Chrome at 1280×720 landscape: menu → tile → swipe → ten pops → celebration
-→ home button. **No console errors, no page errors.** Screenshots confirmed the sky, sun, hills,
-shaded balloons, sparkle stars, the shred-and-ring burst, the star row mid-spring, the reset, and a
-full confetti celebration. The tray fix came straight out of reading those frames.
+One of the new tests failed first time and was worth having: the bunch-geometry invariant caught a
+mistake in *the test's own* arithmetic (an extra radius added to a centre-to-centre distance). The
+real geometry chains fine. It stays in because the thing it guards — bunches drifting wider than
+`chainRadius` — would silently delete the best mechanic in the game with no error anywhere.
+
+**Then actually played it,** both passes. Built for web (`--no-web-resources-cdn`, since this box
+has no network) and drove it in headless Chrome at 1280×720 landscape. **No console errors, no page
+errors** across four driven sessions.
+
+Confirmed on screen: the sky, sun, hills, shaded balloons, sparkle stars, the shred-and-ring burst,
+the star row mid-spring, the reset, and a full confetti celebration. The progress-row tray fix came
+straight out of reading those frames.
+
+From pass two: **a chain caught mid-ripple** — one tap on a yellow bunch of three, and the next
+frame has all three gone, three stars filled, three overlapping burst rings and a cloud of yellow
+shreds, with the purple balloon beside them untouched. Same-colour bunches are clearly readable as
+bunches. The sun's rays turn out on a tap and drop a sparkle. Big balloons appear and are obviously
+the biggest thing in the sky.
 
 **Not verified, and nobody should assume otherwise:**
 
@@ -137,6 +207,13 @@ full confetti celebration. The tray fix came straight out of reading those frame
 - **No haptic was felt.** There is no vibrator in reach of this session.
 - **No touch.** Headless Chrome dispatches mouse events. A mouse drag is not a five-year-old
   sweeping a hand, and the whole swipe-to-pop feature rests on that difference being small.
+- **The big balloon's three-tap swell and its shower were never caught in a frame.** Verified by
+  test (three taps, each counted, burst and `PopBurst` on the third) but the timing never lined up
+  with a screenshot, so *how legible the swelling is* remains unproven — and it is the only
+  instruction in the game.
+- **Crowding.** Bunches of three plus showers of five make a much fuller sky. It looked right in
+  screenshots and `maxBalloonsHard` bounds it, but "bright, friendly, calm" is a judgement only a
+  real screen in real hands can make.
 - **iOS and macOS unverified** — no Mac available to these sessions.
 - Every tuned number in here (spawn rate, three radii, `dragReach`, `sparklyInEvery`, `maxBalloons`)
   is a considered guess. The only instrument that settles them is a child.

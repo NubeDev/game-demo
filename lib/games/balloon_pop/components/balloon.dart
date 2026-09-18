@@ -16,6 +16,11 @@ import 'pop_burst.dart';
 /// that follows its own drift so it looks like it is riding the air rather than
 /// sliding along a track.
 ///
+/// A balloon can need more than one tap ([taps]). A big one takes three, and
+/// **inflates visibly** on each: a five-year-old cannot be told "keep going",
+/// so the balloon has to say it. Every tap still counts as progress, so mashing
+/// is rewarded and a half-inflated balloon that floats away costs nothing.
+///
 /// Replacing it with a sprite means changing [render] and reading the path from
 /// `assets.dart`; nothing else here changes.
 class Balloon extends PositionComponent with TapCallbacks {
@@ -26,7 +31,9 @@ class Balloon extends PositionComponent with TapCallbacks {
     required super.position,
     required double radius,
     this.sparkly = false,
+    this.taps = 1,
   })  : _radius = radius,
+        _tapsLeft = taps,
         super(
           // Size is the TOUCH TARGET, not the drawn balloon. It is deliberately
           // larger than the art (see BalloonPopGame.balloonRadii): a
@@ -53,14 +60,32 @@ class Balloon extends PositionComponent with TapCallbacks {
   /// mean a better *moment*, never a bigger number (CLAUDE.md §3).
   final bool sparkly;
 
-  /// Called when this balloon is popped by a tap (not when it drifts away).
+  /// How many taps this balloon takes. One for an ordinary balloon; a big one
+  /// takes three and swells between them.
+  final int taps;
+
+  /// Called on every tap that counted — including the squeezes of a multi-tap
+  /// balloon, so persistence is rewarded rather than only completion. Check
+  /// [isSpent] to tell a squeeze from the final burst. Not called when the
+  /// balloon drifts away.
   final void Function(Balloon balloon) onPopped;
 
   final double _radius;
+  int _tapsLeft;
   final _random = Random();
 
   /// The drawn radius, which is smaller than the touch target.
   double get radius => _radius;
+
+  /// Taps still needed before this balloon bursts.
+  int get tapsRemaining => _tapsLeft;
+
+  /// A balloon that takes more than one tap.
+  bool get isBig => taps > 1;
+
+  /// How much it has swollen from being squeezed, 0 upwards. Drives the "it is
+  /// about to go" reading that replaces any written instruction.
+  double _inflation = 0;
 
   /// Horizontal drift, so balloons don't rise in straight mechanical lines.
   late final double _driftPhase = _random.nextDouble() * pi * 2;
@@ -120,8 +145,11 @@ class Balloon extends PositionComponent with TapCallbacks {
     final centre = Offset(size.x / 2, size.y / 2);
     // Breathing squash-and-stretch: helium balloons never hold still.
     final breath = sin(_time * _breathRate + _breathPhase) * 0.03;
-    final bodyWidth = _radius * 1.85 * (1 - breath);
-    final bodyHeight = _radius * 2.1 * (1 + breath);
+    // Each squeeze leaves the balloon fatter and rounder — tauter, closer to
+    // going. This is the whole instruction for a multi-tap balloon.
+    final swell = 1 + _inflation;
+    final bodyWidth = _radius * 1.85 * (1 - breath) * swell;
+    final bodyHeight = _radius * 2.1 * (1 + breath) * (1 + _inflation * 0.6);
 
     _renderString(canvas, centre);
     _renderBody(canvas, centre, bodyWidth, bodyHeight);
@@ -236,9 +264,21 @@ class Balloon extends PositionComponent with TapCallbacks {
     pop();
   }
 
-  /// Pops with a quick squash-and-vanish and leaves a [PopBurst] behind.
+  /// Pops with a quick squash-and-vanish and leaves a [PopBurst] behind — or,
+  /// on a multi-tap balloon with taps to spare, swells instead.
   void pop() {
     if (isSpent) return;
+
+    if (_tapsLeft > 1) {
+      _tapsLeft--;
+      _squeeze();
+      // A squeeze counts. Progress only ever rises, so rewarding the tap that
+      // did not finish the job costs nothing and means a child who taps once
+      // and wanders off still got something (CLAUDE.md §3).
+      onPopped(this);
+      return;
+    }
+
     _isPopping = true;
     onPopped(this);
 
@@ -261,6 +301,19 @@ class Balloon extends PositionComponent with TapCallbacks {
           onComplete: removeFromParent,
         ));
       },
+    ));
+  }
+
+  /// A squeeze that did not finish the balloon: it swells, wobbles, and waits.
+  ///
+  /// The wobble is emphatic on purpose. A tap that produced no visible change
+  /// would read as the game ignoring them, which is the one thing a multi-tap
+  /// balloon must not do.
+  void _squeeze() {
+    _inflation += 0.16;
+    add(ScaleEffect.to(
+      Vector2.all(1.14),
+      EffectController(duration: 0.09, reverseDuration: 0.16),
     ));
   }
 

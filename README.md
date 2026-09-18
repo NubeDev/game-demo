@@ -31,11 +31,17 @@ behind a 3-second hold that a child cannot pass but an adult reads in a second.
 
 **Balloon Pop** — balloons rise through a drifting sky; touch one and it bursts into rubber shreds
 with a rising note. Ten pops fills a row of stars and the screen throws confetti, then it rolls
-straight on. A **dragged finger pops too**, because sweeping an arm is easier than aiming a tap at
-five. Balloons come in three sizes and the big ones climb slowest, so the easiest target is also the
-one that waits longest. A balloon that reaches the top just floats away — silently, with nothing
-subtracted, because there is no miss to record.
-See [`lib/games/balloon_pop/README.md`](lib/games/balloon_pop/README.md).
+straight on.
+
+There are three things to *cause*, not just tap. Balloons arrive in **same-colour bunches**, and
+popping one ripples through the rest — one tap, a run of pops, the note climbing through all of
+them. **Big balloons take three taps** and swell visibly between them, then burst into a shower of
+little ones, so the reward for popping is more to pop. And the **sun and clouds answer a tap**, so a
+finger that missed every balloon still did something rather than nearly missing.
+
+A **dragged finger pops too**, because sweeping an arm is easier than aiming a tap at five. A balloon
+that reaches the top just floats away — silently, with nothing subtracted, because there is no miss
+to record. See [`lib/games/balloon_pop/README.md`](lib/games/balloon_pop/README.md).
 
 **Shared pieces** — the celebration, the sound cues, the home button, the parental gate and the
 Rive character are built once in [`lib/shared/`](lib/shared/README.md), so game number four is

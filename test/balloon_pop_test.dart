@@ -154,6 +154,142 @@ void main() {
     });
   });
 
+  group('big balloons', () {
+    Balloon bigBalloon(void Function(Balloon) onPopped) => Balloon(
+      color: Colors.red,
+      riseSpeed: 20,
+      radius: BalloonPopGame.bigBalloonRadius,
+      taps: BalloonPopGame.bigBalloonTaps,
+      position: Vector2(300, 300),
+      onPopped: onPopped,
+    );
+
+    testWithFlameGame('takes three taps, and every tap counts', (game) async {
+      var counted = 0;
+      final balloon = bigBalloon((_) => counted++);
+      await game.ensureAdd(balloon);
+
+      balloon.pop();
+      // A tap that did not finish the job still counts. Progress only ever
+      // rises, so rewarding it costs nothing and a child who taps once and
+      // wanders off still got something (CLAUDE.md §3).
+      expect(counted, 1);
+      expect(balloon.isSpent, isFalse);
+      expect(balloon.tapsRemaining, 2);
+
+      balloon.pop();
+      expect(counted, 2);
+      expect(balloon.isSpent, isFalse);
+
+      balloon.pop();
+      expect(counted, 3);
+      expect(balloon.isSpent, isTrue);
+
+      await game.ready();
+      expect(game.children.query<PopBurst>(), hasLength(1));
+    });
+
+    testWithFlameGame('a half-squeezed one that floats away costs nothing', (
+      game,
+    ) async {
+      var counted = 0;
+      final balloon = bigBalloon((_) => counted++);
+      await game.ensureAdd(balloon);
+
+      balloon.pop();
+      balloon.driftAway();
+
+      // There is no "unfinished" state to lose. It counted once and left.
+      expect(counted, 1);
+      expect(balloon.isSpent, isTrue);
+      balloon.pop();
+      expect(counted, 1);
+    });
+
+    test('a shower can never overrun the screen', () {
+      // The shower deliberately ignores maxBalloons — that burst of plenty is
+      // the reward for three taps. The hard ceiling is what stops that
+      // exception stacking with the next mechanic someone adds.
+      expect(
+        BalloonPopGame.maxBalloonsHard,
+        greaterThanOrEqualTo(
+          BalloonPopGame.maxBalloons + BalloonPopGame.bigBalloonShower,
+        ),
+      );
+      // And it has to actually be a ceiling, not just a bigger number.
+      expect(
+        BalloonPopGame.maxBalloonsHard,
+        greaterThan(BalloonPopGame.maxBalloons),
+      );
+    });
+
+    test('is slow and huge — three taps has to be a promise it can keep', () {
+      // A big balloon that left before it could be tapped three times would
+      // make the swelling a lie.
+      expect(
+        BalloonPopGame.bigBalloonRadius,
+        greaterThan(BalloonPopGame.balloonRadii.reduce((a, b) => a > b ? a : b)),
+      );
+      expect(BalloonPopGame.bigBalloonShower, greaterThan(1));
+    });
+  });
+
+  group('chain reactions', () {
+    Balloon at(double x, double y, Color color) => Balloon(
+      color: color,
+      riseSpeed: 40,
+      radius: 46,
+      position: Vector2(x, y),
+      onPopped: (_) {},
+    );
+
+    test('a same-colour neighbour catches the ripple', () {
+      final source = at(300, 300, Colors.red);
+      final near = at(300 + BalloonPopGame.chainRadius - 10, 300, Colors.red);
+      expect(BalloonPopGame.catchesRipple(source, near), isTrue);
+    });
+
+    test('a different colour does not, however close', () {
+      final source = at(300, 300, Colors.red);
+      final other = at(310, 300, Colors.blue);
+      // One colour is the whole mechanic: a mixed cluster is clutter, a
+      // matching one is something the child can learn to look for.
+      expect(BalloonPopGame.catchesRipple(source, other), isFalse);
+    });
+
+    test('a distant same-colour balloon does not', () {
+      final source = at(300, 300, Colors.red);
+      final far = at(300 + BalloonPopGame.chainRadius + 40, 300, Colors.red);
+      expect(BalloonPopGame.catchesRipple(source, far), isFalse);
+    });
+
+    test('the ripple never re-enters a balloon on its way out', () {
+      final source = at(300, 300, Colors.red);
+      final spent = at(320, 300, Colors.red);
+      spent.driftAway();
+
+      // Without this the ripple could bounce between two balloons forever.
+      expect(BalloonPopGame.catchesRipple(source, spent), isFalse);
+      expect(BalloonPopGame.catchesRipple(source, source), isFalse);
+    });
+
+    test('even the widest bunch chains end to end', () {
+      // A bunch is laid out at 1.35 radii apart, so the widest possible one is
+      // the biggest radius across the full bunch. Both the gap between
+      // neighbours AND the span end-to-end have to sit inside chainRadius: the
+      // first makes the ripple travel, the second means it still travels after
+      // they have drifted apart. If this ever inverts, bunches quietly stop
+      // chaining and the best thing in the game disappears with no error.
+      final widestRadius =
+          BalloonPopGame.balloonRadii.reduce((a, b) => a > b ? a : b);
+      final neighbourGap = widestRadius * 1.35;
+      final endToEnd = (BalloonPopGame.bunchSize - 1) * neighbourGap;
+
+      expect(neighbourGap, lessThan(BalloonPopGame.chainRadius));
+      expect(endToEnd, lessThan(BalloonPopGame.chainRadius));
+    });
+  });
+
   group('swipe to pop', () {
     Balloon balloonAt(double x, double y) => Balloon(
       color: Colors.red,
