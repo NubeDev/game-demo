@@ -42,7 +42,6 @@ flutter:
     - assets/images/enemies/
     - assets/images/scenery/
     - assets/music/
-    - assets/rive/
     - assets/sfx/
 
   fonts:
