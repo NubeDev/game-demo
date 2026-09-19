@@ -29,6 +29,10 @@ class Dog extends StatelessWidget {
     this.reaching = false,
   });
 
+  /// The size the dog is painted at. The screen scales it to fit the space
+  /// the controls leave, rather than the dog assuming a screen size.
+  static const artSize = Size(280, 292);
+
   final Outfit outfit;
   final DogFeeling feeling;
 
@@ -62,7 +66,7 @@ class Dog extends StatelessWidget {
     return Transform.translate(
       offset: Offset(shiver + drip, hop + pant + breathe + eager),
       child: CustomPaint(
-        size: const Size(280, 292),
+        size: artSize,
         painter: _DogPainter(
           outfit: outfit,
           feeling: feeling,

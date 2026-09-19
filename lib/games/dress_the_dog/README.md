@@ -58,13 +58,32 @@ tree for no gain. One `Ticker` drives the dog's idle motion.
 |---|---|
 | `wardrobe.dart` | The model: `Weather`, `Slot`, `WardrobeItem`, `Outfit`, and `DogFeeling`. **The feeling rule lives here alone** — no `if snowing and wearing trunks` anywhere else. |
 | `components/dog.dart` | The placeholder dog, drawn in code, with its reactions tweened. |
-| `components/wardrobe_rail.dart` | The clothes rail and slot tabs. 120×120 tiles, no scrolling. |
-| `components/weather_switch.dart` | The three weather buttons. 100×100. |
+| `components/wardrobe_rail.dart` | The clothes rail and slot tabs. 120×120 tiles where there is room, no scrolling; wraps into columns and moves its tabs on a short screen. |
+| `components/weather_switch.dart` | The three weather buttons. 100×100, wrapping rather than shrinking. |
 | `components/weather_backdrop.dart` | Sky, ground, rain and snow. No lightning, ever. |
 | `assets.dart` | Asset paths, and what the Rive artboard must expose when it arrives. |
 
+## The layout gives way in a fixed order
+
+`dress_the_dog_screen.dart` sizes everything from the real constraints — a phone in landscape is
+only ~400dp tall, where the full-size rail does not fit. When space runs short, things give way in
+this order, and **never** by shrinking a target below the 80×80 rule (CLAUDE.md §3):
+
+1. Gaps close up.
+2. The clothes wrap into more columns.
+3. The slot tabs move from the side of the rail to a row across its top.
+4. The weather buttons wrap onto another row.
+5. The dog gets smaller — last, and never below a reserved minimum width.
+
+Two things never give way at all: the home button's corner, and the rule that no two touch targets
+may overlap. [`test/dress_the_dog_layout_test.dart`](../../../test/dress_the_dog_layout_test.dart)
+pins all of it across five screen sizes.
+
 ## Things that look like tidying but are not
 
+- **The rail is laid out for its fullest slot, not the selected one.** Every slot uses the same
+  number of rows, so the rail does not change shape when a tab is tapped — the screen must not
+  rearrange under a child's hands.
 - **The wardrobe is never filtered by weather.** Swimming trunks stay available in the snow, or the
   funny wrong answer — the thing the child actually wants — becomes unreachable. A test pins this.
 - **Warmth thresholds are deliberately wide.** One sensible item reaches `justRight`; a four-slot

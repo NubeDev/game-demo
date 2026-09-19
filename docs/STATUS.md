@@ -25,13 +25,14 @@ Where we are, right now. Updated at the end of every session.
 | 7 | Balloon Pop — feel: swipe-to-pop, burst, living sky, animated stars, pop ladder | **done** |
 | 8 | Balloon Pop — mechanics: chaining colour bunches, three-tap big balloons, a sky that answers | **done** |
 | 9 | Dress the Dog — the second game: dress a dog (tap or drag), toggle the weather, the dog reacts | **playable, placeholder art** — [scope](scope/games/dress-the-dog-scope.md), [session](sessions/games/dress-the-dog-session.md); never run on a device |
+| 10 | Dress the Dog — a layout that fits a phone, not just a tablet | **done** — [session](sessions/games/dress-the-dog-responsive-layout-session.md), [debugging](debugging/games/dress-the-dog-overflows-on-a-phone.md); **run on the Android emulator**, overflow gone |
 
 ## Build health
 
 | Check | State | Notes |
 |---|---|---|
 | `flutter analyze` | clean | 0 issues |
-| `flutter test` | passing | 38 tests (was 19) |
+| `flutter test` | passing | 81 tests (was 38); `--exclude-tags render` |
 | Android APK | builds | debug APK; `rive_native` links |
 | Web (dev only) | runs | used to drive and screenshot the app from this machine |
 | Played, headless | **yes** | menu → swipe → 10 pops → celebration → home, 1280x720 landscape, no console or page errors |
@@ -95,6 +96,7 @@ remove themselves.
 | **Haptics have no settings switch.** Light impacts only, fire-and-forget, never on a mistake — but a parent who wants them off cannot turn them off | [shared README](../lib/shared/README.md) |
 | Template **arcade music** still plays under the games; only the sfx were replaced | [celebration scope](scope/shared/celebration-and-sound-scope.md) |
 | No real artwork; balloons are drawn shapes, tiles are Material icons | [balloon pop README](../lib/games/balloon_pop/README.md) |
+| Dress the Dog fits every landscape phone, but on a very short one (~375dp) the dog ends up small in the corner — correct and hittable, not pretty. Smaller than any target device | [layout session](sessions/games/dress-the-dog-responsive-layout-session.md) |
 | **No persistence between sessions.** Celebrations do not add up to anything — a sticker book is the obvious next feature, and `shared_preferences` is already wired in | [roadmap](vision/roadmap.md) |
 | **There is no character on screen.** The `rewards.riv` stand-in (a mock rewards *screen*, not a character) was removed — it read as a small dark phone lying in the grass and did nothing when tapped. `RiveCharacter` and `RiveNative.init()` remain, unused and ready for real art | [balloon pop README](../lib/games/balloon_pop/README.md) |
 | Landscape set in `main.dart`, **not** yet in the native manifests | [platform scope](scope/setup/landscape-and-platform-config-scope.md) |

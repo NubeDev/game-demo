@@ -338,10 +338,12 @@ void _dragTests() {
       await tester.pump();
 
       // Drag the trunks out into empty sky, far from the dog, and let go.
+      // The dog's drop target is generous on purpose — it is its drawn area
+      // plus a margin — so a real miss means the far top corner, outside it.
       final gesture =
           await tester.startGesture(tester.getCenter(find.byIcon(Icons.pool_rounded)));
       await tester.pump();
-      await gesture.moveTo(const Offset(700, 60));
+      await gesture.moveTo(const Offset(20, 20));
       await tester.pump();
       await gesture.up();
       // NOT pumpAndSettle: the screen's idle Ticker never stops, so

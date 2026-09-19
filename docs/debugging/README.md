@@ -8,7 +8,7 @@ searches for. `balloons-froze-after-celebration.md`, not `fix-null-check.md`.
 
 | Symptom | Area | Status | Root cause | Regression test |
 |---|---|---|---|---|
-| _none yet_ | | | | |
+| [Dress the Dog overflows the bottom of the screen on a phone](games/dress-the-dog-overflows-on-a-phone.md) | games/dress_the_dog | resolved | Layout built from hard-coded pixel offsets sized against a tablet | [`dress_the_dog_layout_test.dart`](../../test/dress_the_dog_layout_test.dart) |
 
 ## Entry template
 
