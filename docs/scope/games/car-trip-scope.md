@@ -1,8 +1,8 @@
 # Games — Car Trip (scope)
 
 - Date: 2026-09-20
-- Status: proposed
-- Session: (none yet)
+- Status: built (playable, placeholder art) — run on an Android emulator under real touch
+- Session: ../../sessions/games/car-trip-session.md
 
 ## Why
 
@@ -29,8 +29,11 @@ being asked to do is keep a thumb on a car that is going somewhere nice anyway.
 - **Steering is a thumb on the screen.** Put a finger anywhere in the lower half and the car slides
   to follow it, smoothed so a jittery hand still draws a smooth line. No wheel, no buttons, no
   tilt: the largest possible target, and nothing to discover.
-- **Lift the thumb and the car coasts to a stop at the kerb** and idles, with the world stopped
-  around it, until a finger comes back. A child who wants to look at the cows can look at the cows.
+- **Lift the thumb and the car coasts to a stop** and idles, with the world stopped around it,
+  until a finger comes back. A child who wants to look at the cows can look at the cows.
+  - *Built differently on purpose:* it stops **where it is**, not by pulling over to the kerb.
+    Drifting the car sideways while nobody is touching it would break the finish line at the
+    bottom of this file — the car never does anything the child did not ask it to.
 - **A big horn button in the corner that does nothing useful.** Beep it and the animals along the
   roadside jump, wave, moo and flap. It has no purpose, costs nothing, cannot be wrong, and will
   probably be the most-pressed thing in the app.
@@ -46,6 +49,10 @@ being asked to do is keep a thumb on a car that is going somewhere nice anyway.
 - **Passengers waiting at the kerb.** Pull up alongside a dog, a duck, a sheep or a bear and it
   hops in with a delighted noise and rides along looking out of the window, and the car gets
   visibly fuller as the trip goes on.
+  - *Learned while building:* a passenger standing on the verge is further from the centre line
+    than the car's reach, so a child driving down the middle would never collect one. The animal
+    now **walks down to the edge of the tarmac itself** when it sees the car coming, which turns
+    "pull up alongside" from aim into a lean of the thumb. A test pins how small that lean is.
 - **Each passenger fills one progress dot.** Dots full → the road bends into the destination →
   everyone piles out → the shared celebration → **a new road to somewhere else** (beach → farm →
   park → snowy village), forever. There is no last trip.
@@ -117,29 +124,51 @@ felt and tuned long before any real artwork exists. Asset paths collected in one
 
 ## Open questions
 
-- [ ] **Drag-to-steer, or two big corner buttons like Cat Run?** Drag is the bigger target and needs
-      no discovery, and it is the pre-writing motion that justifies the game. But it is untested
-      with a real small hand, and it is the one control in the app that a child could hold wrong.
-      Owned by the first real-child session; the buttons are the fallback and cost little.
-- [ ] **Top-down, side-on, or three-quarter view?** Three-quarter looks best and reads as "driving",
-      top-down makes the steering clearest, side-on is what Cat Run already does and would make the
-      two games look like the same game.
+Closed by building it (2026-09-20 session). **None of them is closed by a child yet** — every one
+of these was settled by reasoning and a test, and the ones marked *needs a child* are the ones a
+test genuinely cannot answer.
+
+It has since been **driven on an Android emulator under real touch**, which answered rather less
+than it looked like it would: the emulator ran at about 2fps, so it proved that the controls *work*
+and found two real bugs (see the [session](../../sessions/games/car-trip-session.md)), but it
+proved nothing at all about how any of this **feels**. Every question below that turns on speed,
+responsiveness or pacing is still exactly as open as it was.
+
+- [x] **Drag-to-steer, or two big corner buttons?** → **Drag.** The whole bottom half of the screen
+      steers, and the car goes to where the thumb is directly. It is the biggest possible target,
+      needs no discovery, and it is the pre-writing motion that justifies the game. *Needs a child*:
+      the buttons are still the fallback and would cost about an hour.
+- [x] **Top-down, side-on, or three-quarter?** → **The road runs away to a horizon**, with a
+      `focal / (focal + depth)` projection. Side-on would have made this and Cat Run read as the
+      same game with different art.
+- [x] **Do passengers need to be steered to?** → **Yes, but barely.** See the note in *What*: the
+      animal walks to the kerb, so the ask is a lean rather than aim.
+- [x] **How many passengers make a trip?** → **Six**, about forty seconds of driving.
+- [x] **Is the car wash an event on the road, or its own game?** → **An event.** Mud and the car
+      wash are two of the things it is fun to drive through; neither changes how the car drives.
+- [x] **Is the car the Rive character?** → **Not yet.** A shape-drawn car does everything this game
+      needs, and `lib/shared/rive_character.dart` stays ready for real art.
+
+Still open:
+
 - [ ] **Does clipping a cone need to do anything at all** beyond the bounce — or is even the wobble
-      too much like being told off?
-- [ ] **Do passengers need to be steered to**, or should driving anywhere near one be enough? If
-      they must be aimed at, the steering has a purpose; if they are free, the game is calmer.
-- [ ] **Is the horn always on screen,** or does a permanent button in the corner steal attention
-      from the road entirely? A child who discovers the horn may never steer again — which may be
-      a perfectly good outcome for a five-year-old, and is worth watching before deciding.
+      too much like being told off? *Needs a child.* Built as: wobble, soft parp, comedy tumble into
+      the grass, nothing counted.
+- [ ] **Is the horn always on screen,** or does a permanent button in the corner steal the road
+      entirely? Built always-on, which is the version that finds out. A child who discovers the horn
+      and never steers again may be a perfectly good outcome — watch before deciding.
 - [ ] **A friendly traffic light or lollipop person** — is waiting-on-purpose worth teaching here,
-      or does Blast Off already own waiting?
-- [ ] **How many passengers make a trip?** Too few and arriving is meaningless; too long and no
-      child ever sees the beach.
-- [ ] **Does the shared Rive character drive the car,** and is this the game that finally gives
-      `lib/shared/rive_character.dart` a real job — a face in the window reacting to every puddle?
-- [ ] **Is the car wash an event on the road, or the beginning of its own game?** Washing, painting
-      and filling a car is a whole toy of its own, and putting it here may be putting two games in
-      one folder.
+      or does Blast Off already own waiting? Not built.
+- [ ] **How should a trip actually end?** Arriving is currently a cross-fade to the new place plus
+      the confetti. The road does not literally bend into a farm gate the way the *What* describes,
+      and it is not obvious that it should — a destination the child drives *into* is a much bigger
+      piece of work than a change of scene.
+- [ ] **Is the steering hand hint enough?** This game is the only one whose control cannot be seen,
+      so a pulsing hand shows until the first touch and then never again. Whether a child needs it
+      back after putting the tablet down is a question for a real one.
+- [ ] **Is 210 units/sec the right road speed, and is the steering too eager?** Untouched since it
+      was guessed. The emulator was far too slow to judge either. *Needs a device that holds 60fps,
+      before it needs a child.*
 
 ## Done when
 

@@ -29,7 +29,10 @@ for how to write one and [`../ABOUT-DOCS.md`](../ABOUT-DOCS.md) for where it sit
 | Scope | Status | What |
 |---|---|---|
 | [games/balloon-pop-scope.md](games/balloon-pop-scope.md) | shipped | First game: balloons float up, tap to pop, celebrate every 10 |
-| [games/dress-the-dog-scope.md](games/dress-the-dog-scope.md) | proposed | Second game: dress a dog, toggle the weather, the dog reacts to what it is wearing |
-| [games/cat-run-scope.md](games/cat-run-scope.md) | proposed | Third game: a cat that runs, jumps over and ducks under things, and never loses |
+| [games/dress-the-dog-scope.md](games/dress-the-dog-scope.md) | building | Second game: dress a dog, toggle the weather, the dog reacts to what it is wearing |
+| [games/cat-run-scope.md](games/cat-run-scope.md) | built | Third game: a cat that runs, jumps over and ducks under things, and never loses |
 | [games/blast-off-scope.md](games/blast-off-scope.md) | building | Fourth game: a countdown the child sets going, counts along with, and cheers at zero |
-| [games/car-trip-scope.md](games/car-trip-scope.md) | proposed | Fifth game: steer a car along a road, pick up animal passengers, arrive somewhere nice |
+| [games/car-trip-scope.md](games/car-trip-scope.md) | built | Fifth game: steer a car along a road, pick up animal passengers, arrive somewhere nice |
+| [games/neil-the-seal-scope.md](games/neil-the-seal-scope.md) | built | Sixth game: a huge Tasmanian elephant seal flops around a seaside town and everything he sits on boings |
+| [games/crystal-party-scope.md](games/crystal-party-scope.md) | built | Seventh game: hold to fly a unicorn up and down, gather low blue and high pink crystals, finish the rainbow arch, party |
+| [games/quacky-the-duck-scope.md](games/quacky-the-duck-scope.md) | proposed | Eighth game: a grumpy park duck dashes after children and ducks carrying bread, skidding under benches; the bread never gets away |

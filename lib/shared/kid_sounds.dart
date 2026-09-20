@@ -102,4 +102,63 @@ class KidSounds {
   /// alternate between the variants instead of repeating one sample — a child
   /// who has just found this button presses it twenty times.
   void horn({int press = 0}) => _audio.playSfx(SfxType.kidHorn, variant: press);
+
+  // --- Neil the Seal -------------------------------------------------------
+  //
+  // That game is mostly made of noises: an enormous soft animal lands on
+  // something, and the something answers. The cues below are the punchline
+  // rather than feedback, which is why they live under names like [boing]
+  // rather than under [pop].
+
+  /// Neil landing — on a car, on a cone, or on bare ground.
+  ///
+  /// Plays on EVERY tap without exception. "There is no dead tap" is that
+  /// game's central rule (CLAUDE.md §3: a mis-read tap reads as the game
+  /// ignoring the child), and this cue is what keeping it sounds like.
+  void flump({int variant = 0}) =>
+      _audio.playSfx(SfxType.kidFlump, variant: variant);
+
+  /// A car sinking on its springs, and popping back up when he moves off.
+  ///
+  /// The signature sound of the game. [springingBack] picks the relieved,
+  /// rising half of the pair — nothing in that town stays squashed, so the two
+  /// halves always arrive together and the springback is the one that says
+  /// "nothing is broken".
+  void boing({bool springingBack = false}) =>
+      _audio.playSfx(SfxType.kidBoing, variant: springingBack ? 1 : 0);
+
+  /// The pile of kelp. Low, wet and slow, so it is told apart from [boing] by
+  /// ear alone.
+  void squelch() => _audio.playSfx(SfxType.kidSquelch);
+
+  /// Neil's comedy bellow — the honk button.
+  ///
+  /// Like [horn], this does nothing to the game: it is a toy. [press] counts
+  /// presses so repeats alternate between the variants, because a child who
+  /// has just found this button presses it twenty times.
+  ///
+  /// It is a burp, not a roar. A real bull elephant seal rearing and roaring is
+  /// terrifying and that is ruled out of this game entirely.
+  void bellow({int press = 0}) =>
+      _audio.playSfx(SfxType.kidBellow, variant: press);
+
+  /// One voice of the town answering a [bellow] — the dog, the seagulls, a
+  /// wallaby, a ute, a cow. [voice] selects which; the game shuffles the order
+  /// so the round is never the same twice.
+  void answer(int voice) => _audio.playSfx(SfxType.kidAnswer, variant: voice);
+
+  /// How many different voices the town can answer with. The game shuffles
+  /// this many rather than assuming a number.
+  static int get answerVoices => soundTypeToFilename(SfxType.kidAnswer).length;
+
+  /// Neil enjoying a rub. Rate-limited by the game rather than fired every
+  /// frame, so it reads as an animal being pleased rather than as a buzz.
+  void wriggle({int variant = 0}) =>
+      _audio.playSfx(SfxType.kidWriggle, variant: variant);
+
+  /// Neil asleep. The loudest moment in that game, and deliberately the one
+  /// with the softest attack in the whole app: it arrives after a yawn that
+  /// telegraphs it, so the biggest noise a child hears still cannot startle
+  /// them (CLAUDE.md §3).
+  void snore() => _audio.playSfx(SfxType.kidSnore);
 }

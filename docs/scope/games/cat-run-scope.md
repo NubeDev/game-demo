@@ -1,8 +1,8 @@
 # Games — Cat Run (scope)
 
 - Date: 2026-09-20
-- Status: proposed
-- Session: (none yet)
+- Status: built (playable, placeholder art)
+- Session: [../../sessions/games/cat-run-session.md](../../sessions/games/cat-run-session.md)
 
 ## Why
 

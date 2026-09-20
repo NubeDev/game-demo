@@ -1,7 +1,3 @@
-import 'dart:math';
-
-import 'package:flutter/material.dart';
-
 /// The road, in data: what can be on it, where the child is, and how a point
 /// out in front of the car turns into a point on the screen.
 ///
@@ -19,6 +15,10 @@ import 'package:flutter/material.dart';
 ///  * **depth** — how far ahead of the car something is, in world pixels. It
 ///    counts down to 0 as the car reaches it, and goes negative once passed.
 library;
+
+import 'dart:math';
+
+import 'package:flutter/material.dart';
 
 /// How far onto the grass the child can steer.
 ///
@@ -162,12 +162,14 @@ class RoadThingKind {
     id: 'rainbow_arch',
     action: RoadAction.driveThrough,
     // Spans the whole road: an arch that cannot be missed, because the nicest
-    // thing in the game should not depend on aim.
-    drawWidth: 2.2,
-    drawHeight: 1.1,
+    // thing in the game should not depend on aim. Kept deliberately low and
+    // only just wider than the tarmac — at full size on a landscape phone a
+    // taller one covered the road completely as the car went under it.
+    drawWidth: 2.0,
+    drawHeight: 0.85,
     color: Color(0xFFFF6B8A),
     secondColor: Color(0xFF4FC3F7),
-    reach: 2.0,
+    reach: 1.8,
     effect: ThroughEffect.repaint,
   );
   static const mud = RoadThingKind(
@@ -182,11 +184,11 @@ class RoadThingKind {
   static const carWash = RoadThingKind(
     id: 'car_wash',
     action: RoadAction.driveThrough,
-    drawWidth: 2.2,
-    drawHeight: 1.0,
+    drawWidth: 2.0,
+    drawHeight: 0.85,
     color: Color(0xFF7FD4F0),
     secondColor: Color(0xFFFFFFFF),
-    reach: 2.0,
+    reach: 1.8,
     effect: ThroughEffect.wash,
   );
 
@@ -200,7 +202,7 @@ class RoadThingKind {
     color: Color(0xFFFF8A3D),
     secondColor: Color(0xFFFFFFFF),
     // Smaller than the art: a clip that looked like a miss IS a miss.
-    reach: 0.16,
+    reach: 0.12,
   );
   static const beachBall = RoadThingKind(
     id: 'beach_ball',
@@ -209,7 +211,7 @@ class RoadThingKind {
     drawHeight: 0.30,
     color: Color(0xFFFFE156),
     secondColor: Color(0xFFFF6B8A),
-    reach: 0.20,
+    reach: 0.14,
   );
   static const hayBale = RoadThingKind(
     id: 'hay_bale',
@@ -217,7 +219,7 @@ class RoadThingKind {
     drawWidth: 0.40,
     drawHeight: 0.32,
     color: Color(0xFFE3C063),
-    reach: 0.28,
+    reach: 0.18,
   );
   static const bin = RoadThingKind(
     id: 'bin',
@@ -225,7 +227,7 @@ class RoadThingKind {
     drawWidth: 0.28,
     drawHeight: 0.40,
     color: Color(0xFF6FD97F),
-    reach: 0.20,
+    reach: 0.13,
   );
 
   // --- passengers ----------------------------------------------------------
@@ -368,7 +370,7 @@ enum Destination {
     field: Color(0xFF9FDF95),
     fieldFar: Color(0xFFBDEBB4),
     tarmac: Color(0xFF9E9E9E),
-    verge: Color(0xFF8ACB80),
+    verge: Color(0xFFD8CBA0),
   ),
   beach(
     skyTop: Color(0xFFBFE9FF),
@@ -376,7 +378,7 @@ enum Destination {
     field: Color(0xFFF2DCA6),
     fieldFar: Color(0xFFF7E9C6),
     tarmac: Color(0xFFA8A29A),
-    verge: Color(0xFFEBD49B),
+    verge: Color(0xFFF6E7BE),
   ),
   park(
     skyTop: Color(0xFFCDEBFF),
@@ -384,7 +386,7 @@ enum Destination {
     field: Color(0xFF8FD98A),
     fieldFar: Color(0xFFB6E8A8),
     tarmac: Color(0xFF9A968F),
-    verge: Color(0xFF7EC97A),
+    verge: Color(0xFFD7D2B4),
   ),
   snowyVillage(
     skyTop: Color(0xFFD8E9F7),
@@ -392,7 +394,7 @@ enum Destination {
     field: Color(0xFFEDF5FB),
     fieldFar: Color(0xFFDCE9F3),
     tarmac: Color(0xFFB4B8BC),
-    verge: Color(0xFFE3EEF6),
+    verge: Color(0xFFD3DEE8),
   );
 
   const Destination({
@@ -409,6 +411,13 @@ enum Destination {
   final Color field;
   final Color fieldFar;
   final Color tarmac;
+
+  /// The drivable shoulder either side of the tarmac.
+  ///
+  /// Deliberately a different MATERIAL from the field behind it — dust, sand,
+  /// packed snow — rather than a slightly different green. The child has to be
+  /// able to see how far out they may drive, and two similar greens made the
+  /// edge of the drivable world invisible.
   final Color verge;
 
   Destination get next =>
@@ -469,9 +478,21 @@ class Perspective {
   /// How big something at [depth] is drawn, as a fraction of its size at the
   /// car. 1 at the car, shrinking toward 0 at the horizon.
   double scaleAt(double depth) =>
-      // Clamped just short of the eye: something level with the car must not
-      // divide by zero as it goes past.
-      focal / (focal + max(depth, -focal * 0.55));
+      // Clamped short of the eye, for two reasons. The obvious one: something
+      // level with the car must not divide by zero as it goes past.
+      //
+      // The less obvious one, found by driving it on a device — a 2.2:1
+      // landscape phone. The clamp is also the cap on how big anything is ever
+      // drawn, and at -0.55 that was 2.2x, enough for a wide thing (the
+      // rainbow arch, a sheep) to cover the entire screen as it swept by:
+      // the sky, the horizon and the road all vanished behind a wall of
+      // colour for a moment. That is a startle, which CLAUDE.md §3 rules out
+      // ("bright, friendly, calm ... nothing scary"), and on a small screen it
+      // also hides the road the child is steering on.
+      //
+      // -0.15 caps growth at about 1.2x. Near things still sweep past and
+      // still read as close; nothing fills the screen.
+      focal / (focal + max(depth, -focal * 0.15));
 
   /// Where [depth] lands on the screen, vertically.
   double yAt(double depth) => horizonY + (carY - horizonY) * scaleAt(depth);

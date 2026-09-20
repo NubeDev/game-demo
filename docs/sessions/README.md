@@ -15,3 +15,5 @@ folder. See [`../ABOUT-DOCS.md`](../ABOUT-DOCS.md) for the template and the defi
 | [games/blast-off-controls-overlap-session.md](games/blast-off-controls-overlap-session.md) | 2026-09-20 | games | done |
 | [games/cat-run-jump-session.md](games/cat-run-jump-session.md) | 2026-09-20 | games | done |
 | [games/blast-off-rocket-size-session.md](games/blast-off-rocket-size-session.md) | 2026-09-20 | games | done |
+| [games/neil-the-seal-session.md](games/neil-the-seal-session.md) | 2026-09-20 | games | done |
+| [games/crystal-party-session.md](games/crystal-party-session.md) | 2026-09-20 | games | done |

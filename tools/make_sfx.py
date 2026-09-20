@@ -158,3 +158,160 @@ for idx, (lo, hi) in enumerate(((E5, G5), (G5, C6))):
         tone(lo, 0.16, amp=0.42, start=start, buf=buf, total=total)
         tone(hi, 0.16, amp=0.30, start=start, buf=buf, total=total)
     write(f"kid_horn{idx + 1}", buf)
+
+
+# ===========================================================================
+# Neil the Seal
+# ===========================================================================
+#
+# This game is built around its noises more than any other in the app: the
+# whole joke is that an enormous soft animal lands on something and the
+# something answers. So these are less "cues" and more "the punchline" -- and
+# they still obey the same rules (CLAUDE.md section 3). Nothing percussive,
+# nothing above ~4 kHz, and the loudest thing in the game is a snore.
+#
+# What is deliberately NOT here: a car alarm, a siren, a shout, an angry
+# anything. The scope forbids all of them outright -- nobody in this town is
+# ever cross that Neil is there.
+
+
+def bend(freq_at, dur, amp=0.5, start=0.0, buf=None, total=None, harm=0.18,
+         attack=0.012):
+    """A tone whose pitch follows freq_at(p), with p running 0..1 over `dur`.
+
+    `tone()` can only wobble around a fixed pitch. A boing, a squelch and a
+    bellow are all pitch SHAPES -- the movement *is* the sound -- so they need
+    the frequency to be a function of time.
+
+    The phase is integrated rather than computed as sin(2*pi*f*t): with a
+    changing f the latter jumps whenever f moves, which is an audible click,
+    and a click is exactly the transient these cues must not have.
+    """
+    n_total = int(SR * (total if total else dur + start))
+    if buf is None:
+        buf = [0.0] * n_total
+    s0 = int(SR * start)
+    n = max(1, int(SR * dur))
+    phase = 0.0
+    for i in range(n):
+        if s0 + i >= len(buf):
+            break
+        phase += 2 * math.pi * freq_at(i / n) / SR
+        v = math.sin(phase) + harm * math.sin(2 * phase)
+        buf[s0 + i] += v * amp * env(i / SR, dur, attack=attack)
+    return buf
+
+
+# --- flump: Neil lands. ---------------------------------------------------
+# Two tonnes arriving gently: a soft low whumph that drops away. It plays on
+# EVERY tap, including the ones that land on bare ground -- "there is no dead
+# tap" is the scope's rule and this is the sound of it being kept -- so it has
+# two variants and sits low in the mix.
+for idx, top in enumerate((note(-5), note(-8))):
+    dur = 0.30
+    buf = bend(lambda p, top=top: top * (1.0 - 0.42 * p),
+               dur, amp=0.55, total=dur, harm=0.38)
+    write(f"kid_flump{idx + 1}", buf)
+
+# --- boing: the car on its springs, and the spring back. ------------------
+# THE sound of this game. The scope is built around the car and the cone, and
+# says the springback has to be perfect because everything else in the town is
+# judged against it.
+#
+# A boing is a pitch WOBBLE that decays -- not a hit. There is no attack
+# transient anywhere in it, which is what keeps a two-tonne animal landing on
+# a car friendly rather than violent. Variant 1 is the sink (pitch sagging
+# under the weight), variant 2 is the springback (shorter, rising, relieved).
+for idx, (base, drift, dur) in enumerate(
+    ((note(-3), -0.10, 0.62), (note(2), 0.09, 0.42))
+):
+    def shape(p, base=base, drift=drift, dur=dur):
+        decay = (1.0 - p) ** 1.5
+        return (base * (1.0 + drift * p)
+                * (1.0 + 0.30 * decay * math.sin(2 * math.pi * 8.5 * p * dur)))
+    write(f"kid_boing{idx + 1}", bend(shape, dur, amp=0.55, total=dur, harm=0.3))
+
+# --- squelch: the pile of kelp. -------------------------------------------
+# Low, wet and slow. A long downward bend with a lazy wobble under it -- the
+# opposite of the boing, so the two props are told apart by ear alone.
+dur = 0.50
+write("kid_squelch1", bend(
+    lambda p: note(-9) * (1.0 - 0.33 * p) * (1.0 + 0.11 * math.sin(2 * math.pi * 3.4 * p * dur)),
+    dur, amp=0.5, total=dur, harm=0.45,
+))
+
+# --- bellow: the honk button. ---------------------------------------------
+# The one button in this game that does nothing, and the thing a child will
+# press twenty times in a row -- so two variants, alternated, and mixed below
+# the cue that actually says "that worked".
+#
+# Deliberately NOT a roar. A real bull elephant seal rears up and roars and it
+# is terrifying; the scope rules all of that out. This is a burp with opinions:
+# low, round, slightly rude, and over quickly.
+for idx, base in enumerate((note(-17), note(-15))):
+    def shape(p, base=base):
+        # Up into it, then a long sag. A burp, not a threat.
+        return (base
+                * (1.0 + 0.16 * math.sin(math.pi * min(1.0, p * 1.6)) - 0.13 * p)
+                * (1.0 + 0.05 * math.sin(2 * math.pi * 5.0 * p)))
+    write(f"kid_bellow{idx + 1}", bend(shape, 0.75, amp=0.55, total=0.75, harm=0.42))
+
+# --- snore: the nap, which is the reward. ---------------------------------
+# "The biggest noise in the game is a snore, and it arrives after a yawn that
+# telegraphs it" (the scope). Two slow breaths: a swell in, a longer sag out.
+# The softest attack of anything in the app -- a quarter of a second -- so that
+# the loudest moment in the game still cannot startle anybody.
+total = 2.3
+buf = [0.0] * int(SR * total)
+for start in (0.0, 1.20):
+    bend(lambda p: note(-19) * (1.0 + 0.20 * math.sin(math.pi * p)),
+         0.95, amp=0.5, start=start, buf=buf, total=total, harm=0.34, attack=0.25)
+    # A quiet fifth above, so it reads as a big soft body rather than a hum.
+    bend(lambda p: note(-12) * (1.0 + 0.18 * math.sin(math.pi * p)),
+         0.85, amp=0.16, start=start + 0.05, buf=buf, total=total, harm=0.2, attack=0.3)
+write("kid_snore1", buf)
+
+# --- the answers: the town replying to the bellow, in a round. ------------
+# The dog, the seagulls, a wallaby thumping the ground, a ute, a cow over the
+# fence. Played one after another in a shuffled order, so the round is never
+# the same twice -- which is the whole reason this game's honk is not Car
+# Trip's horn (the scope's *Kid-rules impact*).
+#
+# All five sit on the same pentatonic scale as everything else in the app.
+# That matters more here than anywhere: this is the one cue designed to
+# overlap with itself, and it has to stay consonant however the round lands.
+_answers = (
+    # (name, [(freq, start, dur, amp)], total, harm)
+    # dog: two quick mid barks, warm and blunt.
+    ("dog",     [(E5, 0.00, 0.10, 0.5), (E5, 0.16, 0.12, 0.45)], 0.32, 0.4),
+    # seagulls: a pair of high rising chirps. Quiet -- high and loud is the
+    # one combination that startles.
+    ("seagull", [(C6, 0.00, 0.09, 0.3), (E6, 0.11, 0.10, 0.26)], 0.26, 0.12),
+    # wallaby: two very low thumps on the ground. Felt more than heard.
+    ("wallaby", [(note(-19), 0.00, 0.13, 0.55), (note(-19), 0.20, 0.13, 0.45)], 0.38, 0.5),
+    # ute: a warm two-note parp from over the road.
+    ("ute",     [(G5, 0.00, 0.16, 0.4), (C5, 0.00, 0.16, 0.34)], 0.24, 0.3),
+    # cow: one long low note, falling. The last word, usually.
+    ("cow",     [(note(-5), 0.00, 0.52, 0.5)], 0.56, 0.36),
+)
+for idx, (name, voices, total, harm) in enumerate(_answers):
+    buf = [0.0] * int(SR * total)
+    for freq, start, dur, amp in voices:
+        if name == "cow":
+            # The cow sags; everything else holds its note.
+            bend(lambda p, f=freq: f * (1.0 - 0.14 * p),
+                 dur, amp=amp, start=start, buf=buf, total=total, harm=harm)
+        else:
+            tone(freq, dur, amp=amp, start=start, buf=buf, total=total)
+    write(f"kid_answer{idx + 1}", buf)
+
+# --- wriggle: Neil being rubbed. -------------------------------------------
+# It fills nothing, unlocks nothing and changes nothing, and it is probably the
+# reason a child comes back to this game — so it gets its own cue rather than
+# borrowing the flump. A small contented burble, rising: the sound of an animal
+# enjoying itself and nothing more.
+for idx, base in enumerate((note(-10), note(-8))):
+    dur = 0.34
+    def shape(p, base=base):
+        return base * (1.0 + 0.18 * p) * (1.0 + 0.07 * math.sin(2 * math.pi * 9 * p))
+    write(f"kid_wriggle{idx + 1}", bend(shape, dur, amp=0.5, total=dur, harm=0.3))

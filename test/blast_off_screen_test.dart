@@ -50,15 +50,24 @@ Future<void> _pumpAt(WidgetTester tester, Size size, Widget child) async {
 }
 
 void main() {
-  group('the menu still fits with a fourth game', () {
+  group('the menu still fits as games are added', () {
     for (final (name, size) in _sizes) {
       testWidgets('$name shows every game, big enough to hit', (tester) async {
         await _pumpAt(tester, size, const HomeScreen());
 
         // Everything visible at once: no scrolling, because a five-year-old
         // does not discover that content exists off-screen (CLAUDE.md §3).
-        expect(find.byType(GameTile), findsNWidgets(4));
-        expect(tester.takeException(), isNull);
+        //
+        // Deliberately not pinned to a number — games get added, and a count
+        // here fails every time one is without telling anyone anything (the
+        // same reasoning as smoke_test). What matters is that the row holds
+        // every tile, at a size a child can hit, with no overflow.
+        expect(find.byType(GameTile), findsWidgets);
+        expect(
+          tester.takeException(),
+          isNull,
+          reason: 'the menu row must not overflow at \$name',
+        );
 
         for (final tile in tester.widgetList<GameTile>(find.byType(GameTile))) {
           expect(

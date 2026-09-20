@@ -28,6 +28,32 @@ List<String> soundTypeToFilename(SfxType type) => switch (type) {
   // minute of discovering the button.
   SfxType.kidHorn => const ['kid_horn1.mp3', 'kid_horn2.mp3'],
 
+  // Neil the Seal. This game is built around its noises — the joke is that an
+  // enormous soft animal lands on something and the something answers — so it
+  // brings more cues than any other game here.
+  //
+  // Two variants on the two that repeat constantly: a child taps the screen
+  // (flump) and leans on the bellow button far more than they do anything
+  // else, and one sample either way would grate within a minute.
+  SfxType.kidFlump => const ['kid_flump1.mp3', 'kid_flump2.mp3'],
+  // The signature sound: variant 0 is the sink, variant 1 is the springback.
+  // Nothing in this game stays squashed, so the two always come as a pair.
+  SfxType.kidBoing => const ['kid_boing1.mp3', 'kid_boing2.mp3'],
+  SfxType.kidSquelch => const ['kid_squelch1.mp3'],
+  SfxType.kidBellow => const ['kid_bellow1.mp3', 'kid_bellow2.mp3'],
+  SfxType.kidSnore => const ['kid_snore1.mp3'],
+  SfxType.kidWriggle => const ['kid_wriggle1.mp3', 'kid_wriggle2.mp3'],
+  // The town answering the bellow, one voice after another: dog, seagulls,
+  // wallaby, ute, cow. Played in a shuffled order every time, which is what
+  // keeps this from being Car Trip's horn with different art.
+  SfxType.kidAnswer => const [
+    'kid_answer1.mp3',
+    'kid_answer2.mp3',
+    'kid_answer3.mp3',
+    'kid_answer4.mp3',
+    'kid_answer5.mp3',
+  ],
+
   // Template sfx, kept for reference. Not used by any game — they are arcade
   // hit/damage sounds and too harsh for this audience (CLAUDE.md §3).
   SfxType.jump => const ['jump1.mp3'],
@@ -73,6 +99,33 @@ double soundTypeToVolume(SfxType type) {
       // pressed dozens of times in a row, so it must never drown out the cue
       // that actually says "that worked" (CLAUDE.md §3).
       return 0.45;
+    case SfxType.kidFlump:
+      // Neil landing. It plays on every single tap, so it sits under the pop:
+      // frequent cues have to be the ones that tire the ear least.
+      return 0.5;
+    case SfxType.kidBoing:
+      // The payoff. The loudest thing in the game short of the celebration,
+      // because a child taps a car in order to hear exactly this.
+      return 0.65;
+    case SfxType.kidSquelch:
+      return 0.55;
+    case SfxType.kidBellow:
+      // Same reasoning as the horn: a toy button that does nothing to the
+      // game must not drown out the cue that says something worked.
+      return 0.5;
+    case SfxType.kidSnore:
+      // "The biggest noise in the game is a snore" is about startle, not
+      // loudness — it is long, soft-edged and telegraphed by a yawn, and it
+      // still sits below the celebration it plays under.
+      return 0.55;
+    case SfxType.kidWriggle:
+      // Rubbing his tummy. It fills nothing and changes nothing, so it sits
+      // well under every cue that means something.
+      return 0.45;
+    case SfxType.kidAnswer:
+      // Five of these arrive in a row after one bellow. Quiet enough that the
+      // round is funny rather than a racket.
+      return 0.42;
     case SfxType.score:
     case SfxType.jump:
     case SfxType.doubleJump:
@@ -92,6 +145,13 @@ enum SfxType {
   kidCount,
   kidLaunch,
   kidHorn,
+  kidFlump,
+  kidBoing,
+  kidSquelch,
+  kidBellow,
+  kidSnore,
+  kidWriggle,
+  kidAnswer,
   score,
   jump,
   doubleJump,

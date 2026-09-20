@@ -55,6 +55,34 @@ void main() {
       expect(find.byType(Text), findsNothing);
     });
 
+    testWidgets('no two games share a tile colour', (tester) async {
+      // A child who cannot read picks their game by COLOUR AND SHAPE alone
+      // (CLAUDE.md §3), so two identically-coloured tiles are two games they
+      // cannot tell apart. Found by looking at the menu with seven games on
+      // it: the seventh and the rocket were both orange, and adjacent.
+      await tester.pumpWidget(_wrap(const HomeScreen()));
+
+      final colours = <Color>[];
+      final icons = <IconData>[];
+      for (final element in find.byType(GameTile).evaluate()) {
+        final tile = element.widget as GameTile;
+        colours.add(tile.color);
+        icons.add(tile.icon);
+      }
+
+      expect(colours.length, greaterThan(1));
+      expect(
+        colours.toSet().length,
+        colours.length,
+        reason: 'two games are the same colour',
+      );
+      expect(
+        icons.toSet().length,
+        icons.length,
+        reason: 'two games have the same picture',
+      );
+    });
+
     testWidgets('game tiles are far bigger than the 80x80 minimum', (
       tester,
     ) async {

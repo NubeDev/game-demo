@@ -24,8 +24,17 @@ class KidPalette {
   /// Menu background.
   static const menuBackground = Color(0xFFFFF6E0);
 
-  /// The balloon / button colours. Six is enough variety to feel playful
-  /// without any two being confusable at a glance.
+  /// The balloon / button colours. Enough variety to feel playful without any
+  /// two being confusable at a glance.
+  ///
+  /// One per game on the menu, and **no two tiles may share a colour**: a child
+  /// who cannot read picks their game by colour and shape alone, so two
+  /// identical tiles are two games they cannot tell apart (CLAUDE.md §3).
+  ///
+  /// Eight, for eight games. A ninth game needs a ninth colour added here that
+  /// is distinguishable from all of these at a glance — that is the real limit
+  /// on how many mini-games this menu can carry, and it is a deliberate one:
+  /// the roadmap asks for "five or six, not fifty".
   static const playColors = <Color>[
     Color(0xFFFF6B8A), // pink
     Color(0xFFFFB03A), // orange
@@ -33,6 +42,8 @@ class KidPalette {
     Color(0xFF6FD97F), // green
     Color(0xFF4FC3F7), // blue
     Color(0xFFB07BE8), // purple
+    Color(0xFF5FD9C8), // teal
+    Color(0xFFE88A5A), // terracotta
   ];
 
   /// Used for the progress stars and celebration stars.
