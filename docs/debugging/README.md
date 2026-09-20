@@ -9,6 +9,7 @@ searches for. `balloons-froze-after-celebration.md`, not `fix-null-check.md`.
 | Symptom | Area | Status | Root cause | Regression test |
 |---|---|---|---|---|
 | [Dress the Dog overflows the bottom of the screen on a phone](games/dress-the-dog-overflows-on-a-phone.md) | games/dress_the_dog | resolved | Layout built from hard-coded pixel offsets sized against a tablet | [`dress_the_dog_layout_test.dart`](../../test/dress_the_dog_layout_test.dart) |
+| [Blast Off buttons are drawn over the rocket and the star jar](games/blast-off-controls-cover-the-rocket.md) | games/blast_off | resolved | Scene and controls both anchored to the bottom edge, neither aware of the other | [`blast_off_layout_test.dart`](../../test/blast_off_layout_test.dart) |
 
 ## Entry template
 

@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 
 import 'games/balloon_pop/balloon_pop_screen.dart';
+import 'games/blast_off/blast_off_screen.dart';
+import 'games/cat_run/cat_run_screen.dart';
 import 'games/dress_the_dog/dress_the_dog_screen.dart';
 import 'menu/home_screen.dart';
 import 'settings/settings_screen.dart';
@@ -21,6 +23,15 @@ final router = GoRouter(
           path: 'balloon-pop',
           builder: (context, state) =>
               const BalloonPopScreen(key: Key('balloon pop')),
+        ),
+        GoRoute(
+          path: 'blast-off',
+          builder: (context, state) =>
+              const BlastOffScreen(key: Key('blast off')),
+        ),
+        GoRoute(
+          path: 'cat-run',
+          builder: (context, state) => const CatRunScreen(key: Key('cat run')),
         ),
         GoRoute(
           path: 'dress-the-dog',

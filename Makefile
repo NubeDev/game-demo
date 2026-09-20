@@ -4,7 +4,12 @@
 # sound are only proven under a thumb (`make run-device`), and no make target
 # can assert that. See CLAUDE.md §6.
 FLUTTER ?= flutter
-ADB ?= adb
+
+# The Android SDK. `adb` and `emulator` are not on PATH in a default SDK install
+# (Android Studio never adds them), so resolve them from the SDK rather than
+# failing with "adb: not found" halfway through a boot wait.
+ANDROID_HOME ?= $(HOME)/Android/Sdk
+ADB ?= $(firstword $(shell command -v adb 2>/dev/null) $(ANDROID_HOME)/platform-tools/adb)
 
 # The development target. Desktop is for fast iteration only — iOS and Android
 # are the shipping targets, and CLAUDE.md §1 says so. macOS on a Mac, linux here.
@@ -25,7 +30,10 @@ WEB_PORT ?= 8080
 DEVICE ?=
 
 .PHONY: deps run run-device run-web emulator run-emulator devices emulators \
-        analyze test check privacy format build-apk build-ios icons clean
+        analyze test check privacy format build-apk build-ios icons clean \
+        kill kill-emulator
+
+REPO_ROOT := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 
 deps:
 	$(FLUTTER) pub get
@@ -71,6 +79,10 @@ emulator:
 # ("district_pixel") launches an emulator, but `flutter run` only knows the
 # device it becomes ("emulator-5554"), and rejects the former outright.
 run-emulator: deps
+	@test -x "$(ADB)" || command -v $(ADB) >/dev/null 2>&1 || { \
+		echo 'adb not found at "$(ADB)".'; \
+		echo 'Point make at the SDK: make run-emulator ANDROID_HOME=/path/to/Android/Sdk'; \
+		echo 'or add $$ANDROID_HOME/platform-tools to PATH.'; exit 1; }
 	@id=$$($(ADB) devices | awk '/^emulator-/ {print $$1; exit}'); \
 	if [ -z "$$id" ]; then \
 		echo 'no emulator running — booting $(EMULATOR)'; \
@@ -106,6 +118,90 @@ devices:
 
 emulators:
 	$(FLUTTER) emulators
+
+# --- stopping it --------------------------------------------------------
+
+# `make kill` — free WEB_PORT and reap anything this repo left running.
+#
+# The need is real and recurring: a detached `flutter run`, a Ctrl-C that left the
+# dart VM service behind, or a Gradle daemon holding ~1G of a 16G box (the -Xmx note
+# in android/gradle.properties). The symptom is the next run failing on a busy port,
+# or the machine swapping for no visible reason.
+#
+# SCOPED TO THIS REPO, via scripts/reap-cwd.sh. `flutter`, `dart` and `GradleDaemon`
+# are signatures every Flutter checkout on this box shares, and a command line carries
+# no cwd — so a bare `pkill -f 'flutter run'` would also kill a sibling project's dev
+# run. The script resolves each PID's working directory and signals only those under
+# $(REPO_ROOT). The Gradle daemon runs from android/, so "under" means the subtree.
+#
+# TERM first, then KILL after ~5s for whatever ignored it. The wait is both the
+# graceful-shutdown grace period and the fix for a race where `make kill` returned
+# while the port was still held, so an immediately following `make run-web` failed.
+#
+# The emulator is NOT touched: it takes ~40s to boot, it is shared with every other
+# Flutter project, and `flutter emulators --launch` leaves its cwd set to whichever
+# repo started it — so a cwd-scoped reap would take it out as collateral. Stopping it
+# is a separate, explicit `make kill-emulator`.
+REAP := sh $(REPO_ROOT)/scripts/reap-cwd.sh
+
+# reap <signal> <pattern> — signal only matching PIDs whose cwd is under $(REPO_ROOT).
+define reap
+$(REAP) reap $(REPO_ROOT) $(1) $(2)
+endef
+
+# alive <pattern> — prints "x" if any matching process is still running in THIS repo.
+define alive
+$$($(REAP) alive $(REPO_ROOT) $(1))
+endef
+
+# freeport <signal> <port> — signal only the repo-scoped process LISTENing on <port>.
+# Not `fuser -k`, which is Linux-only and inert on macOS (so kill would silently
+# leave the port held on a Mac dev box).
+define freeport
+$(REAP) freeport $(REPO_ROOT) $(1) $(2)
+endef
+
+# The patterns use a bracket class ([f]lutter) so pgrep does not match this recipe's
+# own command line. reap-cwd.sh excludes itself and its ancestors regardless.
+kill:
+	-@$(call freeport,TERM,$(WEB_PORT))
+	-@$(call reap,TERM,'[f]lutter_tools.snapshot')
+	-@$(call reap,TERM,'[f]lutter run')
+	-@$(call reap,TERM,'[d]art.*devtools|[d]art.*vm_service')
+	-@$(call reap,TERM,'[G]radleDaemon|[G]radleWrapperMain')
+	@i=0; \
+	while [ -n "$(call alive,'[f]lutter run')$(call alive,'[f]lutter_tools.snapshot')$(call alive,'[G]radleDaemon|[G]radleWrapperMain')" ]; do \
+		i=$$((i+1)); \
+		if [ $$i -ge 50 ]; then \
+			$(call reap,KILL,'[f]lutter run'); \
+			$(call reap,KILL,'[f]lutter_tools.snapshot'); \
+			$(call reap,KILL,'[G]radleDaemon|[G]radleWrapperMain'); \
+			$(call freeport,KILL,$(WEB_PORT)); \
+			break; \
+		fi; \
+		sleep 0.1; \
+	done
+	@stuck=$$($(REAP) whoport $(REPO_ROOT) $(WEB_PORT)); \
+	if [ -n "$$stuck" ]; then \
+		echo "reaped this repo's flutter/dart/gradle, but port $(WEB_PORT) is STILL HELD:"; \
+		echo "$$stuck" | sed 's/^/  /'; \
+		echo "that process is not ours to kill — see the note above, or: make run-web WEB_PORT=8081"; \
+	else \
+		echo "killed this repo's flutter/dart/gradle and freed port $(WEB_PORT)"; \
+		echo "the emulator is left running on purpose — \`make kill-emulator\` stops it"; \
+	fi
+
+# Stops the running emulator. Separate from `make kill` on purpose: it is shared with
+# every other Flutter project and costs ~40s to boot again, so it is never collateral.
+# `adb emu kill` asks it to shut down cleanly rather than killing the qemu process.
+kill-emulator:
+	@id=$$($(ADB) devices | awk '/^emulator-/ {print $$1; exit}'); \
+	if [ -z "$$id" ]; then \
+		echo 'no emulator running'; \
+	else \
+		$(ADB) -s $$id emu kill >/dev/null 2>&1 || true; \
+		echo "asked $$id to shut down"; \
+	fi
 
 # --- the gate -----------------------------------------------------------
 

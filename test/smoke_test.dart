@@ -37,8 +37,18 @@ void main() {
     ) async {
       await tester.pumpWidget(_wrap(const HomeScreen()));
 
-      // One playable game plus two "coming soon" placeholders.
-      expect(find.byType(GameTile), findsNWidgets(3));
+      // A tile per game. Deliberately not pinned to a number: games get added,
+      // and a count here would fail every time one does without telling anyone
+      // anything useful. What matters is that there ARE tiles and that none of
+      // them is a dead end.
+      final tiles = find.byType(GameTile);
+      expect(tiles, findsWidgets);
+      for (final element in tiles.evaluate()) {
+        // Nothing on the menu may be a "coming soon" placeholder any more: a
+        // child cannot read "not yet", so a tile that does not open a game
+        // just reads as the screen being broken (CLAUDE.md §3).
+        expect((element.widget as GameTile).comingSoon, isFalse);
+      }
 
       // The player cannot read: nothing on the menu may render text
       // (CLAUDE.md §3). The settings cog is an icon, not a label.
@@ -108,7 +118,9 @@ void main() {
         tester.getCenter(find.byIcon(Icons.lock_outline_rounded)),
       );
       await tester.pump();
-      await tester.pump(ParentalGate.holdDuration + const Duration(milliseconds: 100));
+      await tester.pump(
+        ParentalGate.holdDuration + const Duration(milliseconds: 100),
+      );
       await tester.pumpAndSettle();
       await gesture.up();
       await tester.pumpAndSettle();

@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import '../audio/audio_controller.dart';
 import '../audio/sounds.dart';
 
@@ -56,4 +58,48 @@ class KidSounds {
 
   /// A button or menu tap.
   void tap() => _audio.playSfx(SfxType.kidTap);
+
+  /// One number of a countdown (Blast Off).
+  ///
+  /// [secondsLeft] is what is being counted *to*, and [rungs] how many rungs
+  /// the ladder should be spread over — normally 10, whatever the countdown's
+  /// real length, so a five-minute tidy-up climbs the same phrase as a
+  /// ten-second blast off and resolves into the launch the same way.
+  ///
+  /// This is the one cue that is deliberately *anticipatory*: it is not
+  /// feedback for something the child did, it is the sound of something
+  /// arriving. Nothing about it may read as urgency — no ticking, no
+  /// heartbeat, no siren (CLAUDE.md §3).
+  ///
+  /// TODO(audio): this stands in for a recorded VOICE saying the number, which
+  /// is the real feature — a child who cannot read can absolutely count, and
+  /// counting along out loud is the whole activity. The tone plays under the
+  /// voice once it exists; see `lib/games/blast_off/assets.dart`.
+  void count(int secondsLeft, {int rungs = 10}) =>
+      _audio.playSfx(SfxType.kidCount, variant: countRung(secondsLeft, rungs));
+
+  /// The rung [count] would play. Exposed for tests, which cannot hear it.
+  ///
+  /// Rung 0 is the furthest away and the last rung is "one", so the phrase
+  /// always resolves upward into [launch].
+  static int countRung(int secondsLeft, int rungs) {
+    final ladder = soundTypeToFilename(SfxType.kidCount).length;
+    final highest = min(ladder, rungs) - 1;
+    // Everything above the ladder's reach sits on its bottom rung, so a long
+    // countdown is simply quiet for a while and then starts climbing.
+    final fromEnd = secondsLeft - 1;
+    return (highest - fromEnd).clamp(0, ladder - 1);
+  }
+
+  /// Zero. The rocket goes. Pairs with [celebrate] rather than replacing it.
+  void launch() => _audio.playSfx(SfxType.kidLaunch);
+
+  /// The horn (Car Trip). The only cue in the app that is not feedback for
+  /// anything: it answers a button that does nothing to the game, and that is
+  /// the whole point of it.
+  ///
+  /// [press] is how many times the horn has been pressed, so repeated honks
+  /// alternate between the variants instead of repeating one sample — a child
+  /// who has just found this button presses it twenty times.
+  void horn({int press = 0}) => _audio.playSfx(SfxType.kidHorn, variant: press);
 }

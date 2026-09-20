@@ -15,6 +15,7 @@ class GameTile extends StatefulWidget {
     required this.color,
     required this.onTap,
     this.comingSoon = false,
+    this.size = defaultSize,
   });
 
   final IconData icon;
@@ -24,7 +25,18 @@ class GameTile extends StatefulWidget {
   /// Shown muted, and wobbles instead of navigating.
   final bool comingSoon;
 
-  static const double size = 168;
+  /// The tile's edge. The menu shrinks this to fit every game on one screen
+  /// without scrolling, so it is a parameter rather than a constant — but it
+  /// may never go below [minSize].
+  final double size;
+
+  /// What a tile is on a tablet, where there is room for it.
+  static const double defaultSize = 168;
+
+  /// The floor, and it is the kid rule: a touch target is never smaller than
+  /// 80x80 (CLAUDE.md §3). The menu clamps to this and the extra 8 is margin
+  /// against rounding, not generosity.
+  static const double minSize = 88;
 
   @override
   State<GameTile> createState() => _GameTileState();
@@ -72,11 +84,13 @@ class _GameTileState extends State<GameTile>
           );
         },
         child: Container(
-          width: GameTile.size,
-          height: GameTile.size,
+          width: widget.size,
+          height: widget.size,
           decoration: BoxDecoration(
             color: color,
-            borderRadius: BorderRadius.circular(36),
+            // Scales with the tile so a shrunk tile still reads as the same
+            // friendly rounded square rather than a different shape.
+            borderRadius: BorderRadius.circular(widget.size * 0.21),
             border: Border.all(
               color: KidPalette.ink.withValues(alpha: 0.25),
               width: 4,
@@ -91,7 +105,7 @@ class _GameTileState extends State<GameTile>
           ),
           child: Icon(
             widget.icon,
-            size: 88,
+            size: widget.size * 0.52,
             color: Colors.white.withValues(
               alpha: widget.comingSoon ? 0.65 : 1,
             ),

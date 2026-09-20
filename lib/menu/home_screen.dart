@@ -19,6 +19,10 @@ import 'game_tile.dart';
 ///  * Same layout every time — no "recently played", no reordering.
 ///    Predictability is the feature.
 ///  * The settings cog is small, grey and adult-looking, and is gated.
+
+/// How many games are on the menu. The tiles shrink to fit this many across.
+const int _games = 4;
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -42,42 +46,74 @@ class _HomeScreenState extends State<HomeScreen> {
       body: SafeArea(
         child: Stack(
           children: [
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    GameTile(
-                      icon: Icons.celebration_rounded,
-                      color: KidPalette.playColors[0],
-                      onTap: () {
-                        sounds.tap();
-                        GoRouter.of(context).go('/balloon-pop');
-                      },
+            // One row, every game visible at once, no scrolling — so the
+            // tiles shrink to fit rather than the row growing a scrollbar a
+            // five-year-old would never find (CLAUDE.md §3). They never go
+            // below GameTile.minSize.
+            LayoutBuilder(
+              builder: (context, constraints) {
+                const gap = 24.0;
+                const sidePadding = 32.0;
+                final room =
+                    constraints.maxWidth - sidePadding * 2 - gap * (_games - 1);
+                final tile = (room / _games)
+                    .clamp(GameTile.minSize, GameTile.defaultSize)
+                    // Never taller than the screen either: a landscape phone
+                    // is short, not narrow.
+                    .clamp(GameTile.minSize, constraints.maxHeight - 32);
+
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: sidePadding,
                     ),
-                    const SizedBox(width: 28),
-                    // Coming soon. These respond to a tap with a wobble and a
-                    // soft sound rather than doing nothing — a dead button
-                    // teaches the child the screen is unreliable.
-                    GameTile(
-                      icon: Icons.category_rounded,
-                      color: KidPalette.playColors[3],
-                      comingSoon: true,
-                      onTap: sounds.wobble,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        GameTile(
+                          icon: Icons.celebration_rounded,
+                          color: KidPalette.playColors[0],
+                          size: tile,
+                          onTap: () {
+                            sounds.tap();
+                            GoRouter.of(context).go('/balloon-pop');
+                          },
+                        ),
+                        const SizedBox(width: gap),
+                        GameTile(
+                          icon: Icons.directions_run_rounded,
+                          color: KidPalette.playColors[3],
+                          size: tile,
+                          onTap: () {
+                            sounds.tap();
+                            GoRouter.of(context).go('/cat-run');
+                          },
+                        ),
+                        const SizedBox(width: gap),
+                        GameTile(
+                          icon: Icons.pets_rounded,
+                          color: KidPalette.playColors[4],
+                          size: tile,
+                          onTap: () {
+                            sounds.tap();
+                            GoRouter.of(context).go('/dress-the-dog');
+                          },
+                        ),
+                        const SizedBox(width: gap),
+                        GameTile(
+                          icon: Icons.rocket_launch_rounded,
+                          color: KidPalette.playColors[1],
+                          size: tile,
+                          onTap: () {
+                            sounds.tap();
+                            GoRouter.of(context).go('/blast-off');
+                          },
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 28),
-                    GameTile(
-                      icon: Icons.pets_rounded,
-                      color: KidPalette.playColors[4],
-                      onTap: () {
-                        sounds.tap();
-                        GoRouter.of(context).go('/dress-the-dog');
-                      },
-                    ),
-                  ],
-                ),
-              ),
+                  ),
+                );
+              },
             ),
             // The adult's door. Deliberately quiet: small, grey, cornered,
             // and behind the parental gate.

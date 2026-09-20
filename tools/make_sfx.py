@@ -99,3 +99,62 @@ write("kid_wobble1", buf)
 dur = 0.09
 buf = tone(A5, dur, amp=0.5, total=dur)
 write("kid_tap1", buf)
+
+# --- count: the countdown ladder, one rung per number (Blast Off). ---
+# Ten rungs climbing a pentatonic scale, so the SOUND says "nearly there" to a
+# child who cannot read the digit. Rung 0 is played at ten and rung 9 at one,
+# so the phrase resolves upward into the launch.
+#
+# The last three rungs are deliberately longer and rounder: three-two-one is
+# the moment everything leans in, and the ear should hear that lean rather than
+# just another tick. Still no transient -- excitement comes from pitch and
+# length, never from a bang (CLAUDE.md section 3).
+_ladder = (C5, D5, E5, G5, A5, C6, note(26), note(28), note(31), note(33))
+for idx, base in enumerate(_ladder):
+    final_three = idx >= len(_ladder) - 3
+    dur = 0.34 if final_three else 0.2
+    buf = [0.0] * int(SR * dur)
+    for i in range(len(buf)):
+        t = i / SR
+        f = base * (1.0 + 0.05 * (t / dur))
+        v = math.sin(2 * math.pi * f * t) + 0.2 * math.sin(4 * math.pi * f * t)
+        buf[i] = v * env(t, dur)
+    # The last three get a quiet fifth underneath -- fuller, not louder.
+    if final_three:
+        tone(base / 2, dur, amp=0.3, buf=buf, total=dur)
+    write(f"kid_count{idx + 1}", buf)
+
+# --- launch: zero. A rising swell, NOT an explosion. ---
+# The biggest sound in the app, and the one most at risk of breaking the "no
+# startling" rule: it is built as a slow crescendo of stacked fifths with a
+# soft attack, so it arrives rather than hits.
+total = 1.6
+buf = [0.0] * int(SR * total)
+for k, (f, st, dur) in enumerate((
+    (note(0), 0.0, 1.5),
+    (note(7), 0.08, 1.4),
+    (note(12), 0.16, 1.3),
+    (note(19), 0.3, 1.15),
+    (note(24), 0.5, 0.95),
+    (note(31), 0.75, 0.7),
+)):
+    # Rising amplitude with each stacked voice = a swell that opens out.
+    tone(f, dur, amp=0.22 + 0.04 * k, start=st, vibrato=0.004, buf=buf, total=total)
+write("kid_launch1", buf)
+
+# --- horn: the Car Trip horn. Two short warm notes, "parp-parp". ---
+# This cue is unlike every other one here: it is not feedback for anything, it
+# is a toy. A five-year-old will press it dozens of times in a row, so it has to
+# survive repetition -- hence two variants a step apart, played alternately.
+#
+# A real car horn is a harsh, loud warning with a hard transient, which is
+# exactly what CLAUDE.md section 3 forbids. This is the friendly cartoon version:
+# a warm third, soft attack, short, and mixed below the pop so a child leaning on
+# the button never drowns out the game.
+for idx, (lo, hi) in enumerate(((E5, G5), (G5, C6))):
+    total = 0.44
+    buf = [0.0] * int(SR * total)
+    for start in (0.0, 0.22):  # two parps, not one
+        tone(lo, 0.16, amp=0.42, start=start, buf=buf, total=total)
+        tone(hi, 0.16, amp=0.30, start=start, buf=buf, total=total)
+    write(f"kid_horn{idx + 1}", buf)

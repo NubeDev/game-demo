@@ -30,3 +30,6 @@ for how to write one and [`../ABOUT-DOCS.md`](../ABOUT-DOCS.md) for where it sit
 |---|---|---|
 | [games/balloon-pop-scope.md](games/balloon-pop-scope.md) | shipped | First game: balloons float up, tap to pop, celebrate every 10 |
 | [games/dress-the-dog-scope.md](games/dress-the-dog-scope.md) | proposed | Second game: dress a dog, toggle the weather, the dog reacts to what it is wearing |
+| [games/cat-run-scope.md](games/cat-run-scope.md) | proposed | Third game: a cat that runs, jumps over and ducks under things, and never loses |
+| [games/blast-off-scope.md](games/blast-off-scope.md) | building | Fourth game: a countdown the child sets going, counts along with, and cheers at zero |
+| [games/car-trip-scope.md](games/car-trip-scope.md) | proposed | Fifth game: steer a car along a road, pick up animal passengers, arrive somewhere nice |

@@ -2,13 +2,19 @@
 
 Where we are, right now. Updated at the end of every session.
 
-- **Last updated:** 2026-09-18
-- **Now:** the app is playable, has its own sound, and Balloon Pop has had a second pass for *feel*.
-  Picture menu → Balloon Pop → pop or **swipe** balloons through a drifting sky → **same-colour
-  bunches ripple from one tap**, **big balloons take three taps then shower little ones**, the sun
-  and clouds answer a poke → stars spring in as the pop note climbs → confetti → repeat, with a
-  parent-gated settings screen. All placeholder art (drawn in code) and placeholder (but
-  kid-appropriate) audio.
+- **Last updated:** 2026-09-20
+- **Now:** the app is playable, has its own sound, and there are now four built games plus a
+  parent-gated settings screen. Picture menu → **Balloon Pop** (pop or swipe balloons, colour bunches
+  ripple, big balloons shower) → **Dress the Dog** (dress a dog against the weather) → **Cat Run**
+  (a cat that runs, jumps, ducks, bounces and bonks, and never loses) → **Blast Off** (a countdown
+  the child sets going and cheers at zero; the rocket is bigger the longer the wait). All
+  placeholder art (drawn in code) and placeholder (but kid-appropriate) audio, and **no voice yet**
+  for the countdown, which is the feature Blast Off is really waiting on.
+- **Cat Run is the first game with timing in it**, which is the nearest this app has come to a
+  failure state. It is resolved by keeping the obstacle and deleting the loss: every miss is
+  slapstick (tumble, pancake, belly-flop) and the run never stops. See its
+  [session](sessions/games/cat-run-session.md) for the fairness numbers and what they are derived
+  from.
 - **Next:** play it on a real tablet with a real child. Everything left is either art, sound, or
   tuning that only a child can settle.
 
@@ -26,13 +32,18 @@ Where we are, right now. Updated at the end of every session.
 | 8 | Balloon Pop — mechanics: chaining colour bunches, three-tap big balloons, a sky that answers | **done** |
 | 9 | Dress the Dog — the second game: dress a dog (tap or drag), toggle the weather, the dog reacts | **playable, placeholder art** — [scope](scope/games/dress-the-dog-scope.md), [session](sessions/games/dress-the-dog-session.md); never run on a device |
 | 10 | Dress the Dog — a layout that fits a phone, not just a tablet | **done** — [session](sessions/games/dress-the-dog-responsive-layout-session.md), [debugging](debugging/games/dress-the-dog-overflows-on-a-phone.md); **run on the Android emulator**, overflow gone |
+| 11 | Cat Run — the third game: a cat that runs, jumps over and ducks under things, and never loses | **playable, placeholder art** — [scope](scope/games/cat-run-scope.md), [session](sessions/games/cat-run-session.md); **never run on a device or in a browser** |
+| 12 | Blast Off — a countdown the child sets going, counts along with, and cheers at zero | **playable, placeholder art, no voice** — [scope](scope/games/blast-off-scope.md); never run on a device |
+| 13 | Cat Run — the jump, which was never drawn: the cat's air height reached its hitbox but never the canvas | **done** — [session](sessions/games/cat-run-jump-session.md); arc looked at as stills, **still never felt in motion** |
+| 14 | Blast Off — the rocket grows with the chosen countdown, so the length has a readout that needs no reading | **done** — [session](sessions/games/blast-off-rocket-size-session.md); ladder looked at as stills, **never run on a device** |
+| 15 | Blast Off — the control buttons were drawn over the rocket and the star jar | **done** — [session](sessions/games/blast-off-controls-overlap-session.md), [debugging](debugging/games/blast-off-controls-cover-the-rocket.md); fixed at every target size, **looked at as stills only** |
 
 ## Build health
 
 | Check | State | Notes |
 |---|---|---|
 | `flutter analyze` | clean | 0 issues |
-| `flutter test` | passing | 81 tests (was 38); `--exclude-tags render` |
+| `flutter test` | passing | 217 tests with `--exclude-tags render` (was 199 before the controls fix). The earlier 248 counted the render-tagged tests too |
 | Android APK | builds | debug APK; `rive_native` links |
 | Web (dev only) | runs | used to drive and screenshot the app from this machine |
 | Played, headless | **yes** | menu → swipe → 10 pops → celebration → home, 1280x720 landscape, no console or page errors |
@@ -63,6 +74,30 @@ odd-coloured balloon beside them untouched. The sun turns out rays on a tap. Pin
 the game can spawn still clears 80x80; the pop ladder only ever climbs and never indexes off the end
 of the sample list; a balloon that drifted away cannot then be popped; bursts and confetti both
 remove themselves.
+
+**Cat Run, not proven at all — it has never been seen moving:**
+
+- **Never run on a device, an emulator or in a browser.** The scrolling, the parallax, the jump arc
+  and the scene cross-fade are all unverified in motion. A green suite is standing in for a device
+  run here more than anywhere else in this app.
+- **The jump has never been felt**, and the whole game is that one arc. `jumpDuration`,
+  `coyoteTime` and `jumpBufferTime` are reasoned and tested, not played. The rise itself is now
+  fitted to the screen (`Cat.fitTo`) rather than a flat 250, which does not fit a phone — see the
+  [jump session](sessions/games/cat-run-jump-session.md).
+- **The jump was, until 2026-09-20, not drawn at all**: `airHeight` fed the hitbox and never the
+  canvas, so the cat's hitbox cleared the fence while the cat stayed on the ground lifting its legs.
+  Eleven green tests did not catch it, because all of them asserted on the model. A pixel-level test
+  now pins that the cat is *drawn* off the ground. Worth remembering elsewhere in this app: a test
+  that reads the same number the code wrote proves nothing about what the child sees.
+- **Whether a miss reads as funny rather than as failing.** The tumble, the pancake and the
+  belly-flop are the entire answer to "a runner is failure-shaped", and whether a five-year-old
+  laughs or looks crushed is the one thing that cannot be asserted. `test/cat_run_render_test.dart`
+  renders all four to PNGs so they can at least be looked at.
+- **Whether the crouch button is discovered at all.** If not, the scope's fallback stands: cut duck
+  obstacles to scenery and the game still works jump-only.
+- **Whether the ear-flattening telegraph reads as a warning** to a child, or as nothing.
+- **The chime ladder has only Balloon Pop's three rungs**, so "a note higher than the last" is
+  shallower than the scope asks. Same blocked thread as the pop ladder — no mp3 encoder here.
 
 **Not proven — needs a tablet and a five-year-old:**
 
@@ -96,7 +131,10 @@ remove themselves.
 | **Haptics have no settings switch.** Light impacts only, fire-and-forget, never on a mistake — but a parent who wants them off cannot turn them off | [shared README](../lib/shared/README.md) |
 | Template **arcade music** still plays under the games; only the sfx were replaced | [celebration scope](scope/shared/celebration-and-sound-scope.md) |
 | No real artwork; balloons are drawn shapes, tiles are Material icons | [balloon pop README](../lib/games/balloon_pop/README.md) |
+| **The ± steppers drop out on a narrow screen** (under ~736dp wide, so every landscape phone). The presets still reach every length, but an adult loses the one-rung nudge on a phone | [controls session](sessions/games/blast-off-controls-overlap-session.md) |
+| Blast Off's rocket grows with the countdown length, but on a very short landscape phone (~375dp) the sky leaves it only a 15% spread — correct and legal, barely visible. The dots stay the readout that always works | [rocket size session](sessions/games/blast-off-rocket-size-session.md) |
 | Dress the Dog fits every landscape phone, but on a very short one (~375dp) the dog ends up small in the corner — correct and hittable, not pretty. Smaller than any target device | [layout session](sessions/games/dress-the-dog-responsive-layout-session.md) |
+| Candidate pool for the next games grew after a survey of other open-source kids' apps; **which one is next is still unchosen** | [references](vision/references.md), [roadmap](vision/roadmap.md) |
 | **No persistence between sessions.** Celebrations do not add up to anything — a sticker book is the obvious next feature, and `shared_preferences` is already wired in | [roadmap](vision/roadmap.md) |
 | **There is no character on screen.** The `rewards.riv` stand-in (a mock rewards *screen*, not a character) was removed — it read as a small dark phone lying in the grass and did nothing when tapped. `RiveCharacter` and `RiveNative.init()` remain, unused and ready for real art | [balloon pop README](../lib/games/balloon_pop/README.md) |
 | Landscape set in `main.dart`, **not** yet in the native manifests | [platform scope](scope/setup/landscape-and-platform-config-scope.md) |
@@ -125,4 +163,6 @@ Gotcha worth remembering: `Factory` is exported by both `flutter/foundation.dart
 - [`debugging/README.md`](debugging/README.md) — issues and fixes
 - [`testing/README.md`](testing/README.md) — runbooks
 - [`vision/roadmap.md`](vision/roadmap.md) — where this is going
+- [`vision/references.md`](vision/references.md) — public resources the game ideas and the
+  design rules are drawn from
 - [`../CLAUDE.md`](../CLAUDE.md) — the binding rules
