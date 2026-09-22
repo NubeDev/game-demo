@@ -205,6 +205,36 @@ void main() {
       },
     );
 
+    test('at the catch, Quacky is never drawn inside anybody', () {
+      // THE SCOPE'S RULE, as arithmetic: "there is never a frame where a duck
+      // is pressed against a child". The gap is measured centre to centre, so
+      // it has to clear half of Quacky plus half of the target.
+      //
+      // This is here because it was WRONG and no test could see it: at a catch
+      // distance of 56 against a 126px-wide duck, the bodies overlapped by
+      // 53px and Quacky was drawn on top of the child. It took running the
+      // game in a browser to notice.
+      const quackyHalfWidth = 126 / 2;
+      for (final kind in ChaseKind.values) {
+        final clear =
+            QuackyWorld.caughtWithin - quackyHalfWidth - kind.size.width / 2;
+        expect(
+          clear,
+          greaterThan(0),
+          reason: '${kind.name}: at the catch their art overlaps Quacky\'s by '
+              '${(-clear).toStringAsFixed(0)}px',
+        );
+      }
+    });
+
+    test('the target starts far enough away to be a chase', () {
+      expect(
+        QuackyWorld.startGap - QuackyWorld.caughtWithin,
+        greaterThan(300),
+        reason: 'a target that starts nearly caught is a queue, not a chase',
+      );
+    });
+
     test('the drift alone closes the whole gap within the promised time', () {
       // The arithmetic behind the promise, with no game running. If this ever
       // fails, a child who does not press dash is waiting forever.

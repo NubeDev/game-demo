@@ -3,7 +3,7 @@
 Where we are, right now. Updated at the end of every session.
 
 - **Last updated:** 2026-09-20
-- **Now:** the app is playable, has its own sound, and the menu carries **seven** tiles plus a
+- **Now:** the app is playable, has its own sound, and the menu carries **eight** tiles plus a
   parent-gated settings screen. Picture menu → **Balloon Pop** (pop or swipe balloons, colour
   bunches ripple, big balloons shower) → **Cat Run** (a cat that runs, jumps, ducks, bounces and
   bonks, and never loses) → **Dress the Dog** (dress a dog against the weather) → **Car Trip**
@@ -11,7 +11,9 @@ Where we are, right now. Updated at the end of every session.
   anywhere and an enormous elephant seal galumphs there and flops on whatever is in the way) →
   **Crystal Party** (hold anywhere and a unicorn rises on a rainbow; gather low blue and high pink
   crystals to fill the arch on the horizon) → **Blast Off** (a countdown
-  the child sets going and cheers at zero; the rocket is bigger the longer the wait). All
+  the child sets going and cheers at zero; the rocket is bigger the longer the wait) →
+  **Quacky the Duck** (a grumpy park duck dashes after whoever has the bread and skids under
+  benches; the bread never gets away). All
   placeholder art (drawn in code) and placeholder (but kid-appropriate) audio, and **no voice yet**
   for the countdown, which is the feature Blast Off is really waiting on.
 - **Cat Run is the first game with timing in it**, which is the nearest this app has come to a
@@ -51,16 +53,16 @@ Where we are, right now. Updated at the end of every session.
 | 16 | Car Trip — the first game the child **steers**: a thumb on the bottom half drives a car down a road, picking up animals until it arrives somewhere | **playable, placeholder art** — [scope](scope/games/car-trip-scope.md), [session](sessions/games/car-trip-session.md); **run on the Android emulator under real touch**, which found two bugs the tests could not |
 | 17 | Neil the Seal — the sixth game and a new verb: **choose a place**, and watch what two tonnes of relaxed animal does when it gets there. Everything he lands on squashes and springs straight back | **playable, placeholder art** — [scope](scope/games/neil-the-seal-scope.md), [session](sessions/games/neil-the-seal-session.md), [README](../lib/games/neil_the_seal/README.md); **driven in Chrome over CDP** — taps, a mid-trip redirect, a rub, the bellow and a full nap, with no console errors; **never run on a device, and none of its fourteen new sounds has been heard** |
 | 18 | Crystal Party — the seventh game, and the second **journey**: hold anywhere and a unicorn rises on a rainbow, gathering low blue and high pink crystals to fill the arch on the horizon | **playable, placeholder art** — [scope](scope/games/crystal-party-scope.md), [session](sessions/games/crystal-party-session.md), [README](../lib/games/crystal_party/README.md); **played through in a desktop browser under a driven pointer** — a full land, the party, and on into the next land — which found the arch painting nothing at all; never run on a phone or tablet |
-| 19 | Quacky the Duck — the eighth game and a new verb: **close a gap**. A grumpy park duck dashes after children and ducks carrying bread, and skids under benches on the way | **scope only, no code** — [scope](scope/games/quacky-the-duck-scope.md); the ask is captured, nothing built. Deliberately behind the device runs above |
+| 19 | Quacky the Duck — the eighth game and a new verb: **close a gap**. A grumpy park duck dashes after children and ducks carrying bread, and skids under benches on the way | **playable, placeholder art** — [scope](scope/games/quacky-the-duck-scope.md), [session](sessions/games/quacky-the-duck-session.md), [README](../lib/games/quacky_the_duck/README.md); **played in Chrome over CDP** — dashing, ducking, catching, a celebration and the way home, with no console errors; never run on a device, and no new sounds |
 
 ## Build health
 
 | Check | State | Notes |
 |---|---|---|
 | `flutter analyze` | clean | 0 issues |
-| `flutter test` | passing | **441 tests**; 36 of them new for Crystal Party |
+| `flutter test` | passing | **544 tests**; 71 of them new for Quacky the Duck |
 | Android APK | builds | debug APK; `rive_native` links |
-| Web (dev only) | runs | used to drive and screenshot the app from this machine. **Neil the Seal was played through it over the DevTools Protocol** — taps, a mid-trip redirect, a rub, the bellow and a full nap, with no console errors. **Crystal Party too** — a held pointer lifts the unicorn into the clouds and a release floats her down, with no page errors. Note headless Chrome throttles `requestAnimationFrame` to nothing unless `--disable-background-timer-throttling` and friends are passed, and a bare mouse event never reaches Flutter's gesture arena without `pointerType` |
+| Web (dev only) | runs | used to drive and screenshot the app from this machine. **Neil the Seal was played through it over the DevTools Protocol** — taps, a mid-trip redirect, a rub, the bellow and a full nap, with no console errors. **Crystal Party too** — a held pointer lifts the unicorn into the clouds and a release floats her down, with no page errors. **Quacky the Duck too** — the menu's eighth tile, dashing, ducking, a catch, a celebration and the way home, with no console errors; note Chrome rejects a CDP websocket without `--remote-allow-origins`. Note headless Chrome throttles `requestAnimationFrame` to nothing unless `--disable-background-timer-throttling` and friends are passed, and a bare mouse event never reaches Flutter's gesture arena without `pointerType` |
 | Played, headless | **yes** | menu → swipe → 10 pops → celebration → home, 1280x720 landscape, no console or page errors |
 | Played, Android emulator | **Car Trip only** | 2400x1080 landscape, real touch events. Steering, pickups, the horn and the home button all work. Only ever seen at ~2fps (software rendering), so **nothing has been judged for feel** |
 | Haptics, felt | **not done** | no vibrator in reach of these sessions |

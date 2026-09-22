@@ -213,26 +213,35 @@ class Hazard extends PositionComponent {
   }
 
   void _dogLead(Canvas canvas, Paint fill, Paint ink) {
-    // A lead stretched across the path, with a very pleased dog at one end.
+    // A lead stretched from a post to a very pleased dog.
+    //
+    // The POST matters: without it the first version was a stick floating at
+    // head height with nothing holding it up, which in the browser read as a
+    // glitch rather than as a thing to duck under. Everything overhead in this
+    // game has to be visibly attached to something.
+    canvas.drawRect(
+      Rect.fromLTWH(size.x * 0.02, size.y * 0.2, size.x * 0.05, size.y * 1.6),
+      Paint()..color = const Color(0xFF9B7A50),
+    );
     canvas.drawLine(
-      Offset(0, size.y * 0.3),
-      Offset(size.x * 0.76, size.y * 0.22),
+      Offset(size.x * 0.04, size.y * 0.3),
+      Offset(size.x * 0.74, size.y * 0.5),
       Paint()
         ..color = kind.color
         ..strokeWidth = 7
         ..strokeCap = StrokeCap.round,
     );
+    // The dog, sitting on the ground at the far end and holding the lead taut.
     final dog = Rect.fromLTWH(
-      size.x * 0.72,
-      size.y * 0.2,
-      size.x * 0.26,
-      size.y * 0.55,
+      size.x * 0.7,
+      size.y * 0.42,
+      size.x * 0.28,
+      size.y * 1.35,
     );
     canvas.drawOval(dog, Paint()..color = const Color(0xFFD8A657));
     canvas.drawOval(dog, ink);
-    // A wagging tail, because he is delighted about all of this.
     canvas.drawCircle(
-      Offset(size.x * 0.82, size.y * 0.32),
+      Offset(size.x * 0.84, size.y * 0.55),
       3.4,
       Paint()..color = KidPalette.ink,
     );
@@ -292,13 +301,32 @@ class Hazard extends PositionComponent {
   }
 
   void _deckchair(Canvas canvas, Paint fill, Paint ink) {
-    final path = Path()
-      ..moveTo(size.x * 0.1, size.y)
-      ..lineTo(size.x * 0.5, size.y * 0.15)
-      ..lineTo(size.x * 0.9, size.y * 0.15)
-      ..lineTo(size.x * 0.55, size.y)
+    // A striped canvas sling on a wooden frame. The first version was a bare
+    // parallelogram, which on screen read as a purple slab leaning on nothing —
+    // running the game is the only way that showed up.
+    final frame = Paint()
+      ..color = const Color(0xFF9B7A50)
+      ..strokeWidth = 5
+      ..strokeCap = StrokeCap.round;
+    // Back leg and front leg, making a shallow A.
+    canvas.drawLine(
+      Offset(size.x * 0.12, size.y),
+      Offset(size.x * 0.62, size.y * 0.1),
+      frame,
+    );
+    canvas.drawLine(
+      Offset(size.x * 0.88, size.y),
+      Offset(size.x * 0.42, size.y * 0.46),
+      frame,
+    );
+    // The sling between them.
+    final sling = Path()
+      ..moveTo(size.x * 0.56, size.y * 0.16)
+      ..lineTo(size.x * 0.86, size.y * 0.94)
+      ..lineTo(size.x * 0.58, size.y * 0.94)
+      ..lineTo(size.x * 0.34, size.y * 0.52)
       ..close();
-    canvas.drawPath(path, fill);
-    canvas.drawPath(path, ink);
+    canvas.drawPath(sling, fill);
+    canvas.drawPath(sling, ink);
   }
 }

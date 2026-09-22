@@ -17,3 +17,4 @@ folder. See [`../ABOUT-DOCS.md`](../ABOUT-DOCS.md) for the template and the defi
 | [games/blast-off-rocket-size-session.md](games/blast-off-rocket-size-session.md) | 2026-09-20 | games | done |
 | [games/neil-the-seal-session.md](games/neil-the-seal-session.md) | 2026-09-20 | games | done |
 | [games/crystal-party-session.md](games/crystal-party-session.md) | 2026-09-20 | games | done |
+| [games/quacky-the-duck-session.md](games/quacky-the-duck-session.md) | 2026-09-20 | games | done |

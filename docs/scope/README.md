@@ -35,4 +35,4 @@ for how to write one and [`../ABOUT-DOCS.md`](../ABOUT-DOCS.md) for where it sit
 | [games/car-trip-scope.md](games/car-trip-scope.md) | built | Fifth game: steer a car along a road, pick up animal passengers, arrive somewhere nice |
 | [games/neil-the-seal-scope.md](games/neil-the-seal-scope.md) | built | Sixth game: a huge Tasmanian elephant seal flops around a seaside town and everything he sits on boings |
 | [games/crystal-party-scope.md](games/crystal-party-scope.md) | built | Seventh game: hold to fly a unicorn up and down, gather low blue and high pink crystals, finish the rainbow arch, party |
-| [games/quacky-the-duck-scope.md](games/quacky-the-duck-scope.md) | proposed | Eighth game: a grumpy park duck dashes after children and ducks carrying bread, skidding under benches; the bread never gets away |
+| [games/quacky-the-duck-scope.md](games/quacky-the-duck-scope.md) | built | Eighth game: a grumpy park duck dashes after children and ducks carrying bread, skidding under benches; the bread never gets away |

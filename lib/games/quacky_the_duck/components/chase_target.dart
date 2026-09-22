@@ -160,15 +160,18 @@ class ChaseTarget extends PositionComponent {
   void _renderDuck(Canvas canvas, Paint ink, double jig, double tip) {
     final w = size.x;
     final h = size.y;
+    // Centred so the BOTTOM of the body sits on the ground line: the first
+    // version left an 8%-of-height gap under it and the duck floated, which
+    // only shows up when the game is actually run against a ground line.
     final body = Rect.fromCenter(
-      center: Offset(0, -h * 0.45 + jig * 0.3),
+      center: Offset(0, -h * 0.37 + jig * 0.3),
       width: w * 0.86,
       height: h * 0.74,
     );
     canvas.drawOval(body, Paint()..color = kind.color);
     canvas.drawOval(body, ink);
 
-    final head = Offset(-w * 0.3, -h * 0.92 + jig * 0.4);
+    final head = Offset(-w * 0.3, -h * 0.84 + jig * 0.4);
     canvas.drawCircle(head, w * 0.2, Paint()..color = kind.color);
     canvas.drawCircle(head, w * 0.2, ink);
     _renderFace(canvas, head, w * 0.2, mirrored: true);
@@ -189,13 +192,13 @@ class ChaseTarget extends PositionComponent {
     final w = size.x;
     final h = size.y;
     final body = Rect.fromCenter(
-      center: Offset(0, -h * 0.48 + jig * 0.3),
+      center: Offset(0, -h * 0.35 + jig * 0.3),
       width: w * 0.82,
       height: h * 0.7,
     );
     canvas.drawOval(body, Paint()..color = kind.color);
     canvas.drawOval(body, ink);
-    final head = Offset(-w * 0.28, -h * 0.9 + jig * 0.4);
+    final head = Offset(-w * 0.28, -h * 0.8 + jig * 0.4);
     canvas.drawCircle(head, w * 0.19, Paint()..color = kind.color);
     canvas.drawCircle(head, w * 0.19, ink);
     _renderFace(canvas, head, w * 0.19, mirrored: true);

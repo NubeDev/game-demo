@@ -79,7 +79,10 @@ class QuackyWorld {
   static const catchUpSeconds = 4.5;
 
   /// The gap the next target starts at, in logical pixels.
-  static const startGap = 430.0;
+  ///
+  /// Far enough beyond [caughtWithin] that the chase visibly *closes* — a
+  /// target that starts nearly caught is not a chase, it is a queue.
+  static const startGap = 620.0;
 
   /// How much of the gap a single dash burst closes, as a fraction.
   ///
@@ -87,13 +90,19 @@ class QuackyWorld {
   /// the button should see it work, not have to work it.
   static const dashClose = 0.16;
 
-  /// How close counts as caught, in logical pixels.
+  /// How close counts as caught, measured **centre to centre**.
   ///
-  /// Deliberately not zero. Quacky arriving *near* them is the catch — there is
-  /// never a frame where a duck is pressed against a child, and "nearly" is far
-  /// more forgiving for a small thumb (the scope's open question, answered this
-  /// way for now).
-  static const caughtWithin = 56.0;
+  /// Deliberately large. Quacky arriving *near* them is the catch: the scope
+  /// rules out any frame where a duck is pressed against a child, and "nearly"
+  /// is far more forgiving for a small thumb (the scope's open question,
+  /// answered this way for now).
+  ///
+  /// The number has to clear both bodies, not just look small: at the first
+  /// value of 56 the gap was centre-to-centre while the art is 126 and 104 wide,
+  /// so at the moment of the catch Quacky was drawn *inside* the child — which
+  /// no test could see and the browser run showed immediately. This is half
+  /// Quacky's width plus half the widest target plus a clear margin.
+  static const caughtWithin = 150.0;
 
   /// How fast the gap closes on its own, px/sec. Derived, not guessed.
   static double get drift => (startGap - caughtWithin) / catchUpSeconds;

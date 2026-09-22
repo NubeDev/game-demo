@@ -1,8 +1,10 @@
 # Games — Quacky the Duck (scope)
 
 - Date: 2026-09-20
-- Status: proposed
-- Session: (none yet)
+- Status: built (playable, placeholder art) — driven in a browser
+- Session: [../../sessions/games/quacky-the-duck-session.md](../../sessions/games/quacky-the-duck-session.md)
+- Code: [`lib/games/quacky_the_duck/`](../../../lib/games/quacky_the_duck/) and its
+  [README](../../../lib/games/quacky_the_duck/README.md)
 
 ## Why
 
@@ -155,14 +157,15 @@ gobble can be felt and tuned long before any real artwork exists. Asset paths co
       becomes something else; or each new park gives him a *fresh* small grievance, so the reset
       reads as a new joke rather than lost ground. Leaning towards the fresh grievance. Owned by
       the first real-child session.
-- [ ] **Is the dash a burst or a hold?** A burst is kinder on a small thumb and impossible to get
-      wrong; a hold gives finer control over the gap and is more satisfying. Only a real hand
-      settles it.
+- [x] **Is the dash a burst or a hold?** **Answered: a burst** (`Quacky.dashDuration`, 0.6s);
+      holding simply chains them, so neither way is wrong. Kinder on a small thumb and impossible
+      to get wrong. A real hand may still move it.
 - [ ] **Does duck earn its place at all,** or is this a dash-only game with benches as decoration?
       Cat Run is still asking the same question. Decide on a device, with a child.
-- [ ] **How close does "caught up" need to be?** Touching them, or just getting near? Touching is
-      clearer; near is far more forgiving and avoids any frame where a duck is pressed against a
-      child.
+- [x] **How close does "caught up" need to be?** **Answered: near, never touching**
+      (`QuackyWorld.caughtWithin`). It is forced to clear half of Quacky plus half of the widest
+      target, and a test pins it — the first value let him be drawn *inside* the child, which is
+      exactly the frame this question was asked to avoid.
 - [ ] **Should the child ahead ever hand bread over *before* being caught** — a crust dropped out of
       the bag on the way — so a child who is not dashing at all still gets something every few
       seconds? Probably yes, and it may be what makes the no-fail promise actually feel true.

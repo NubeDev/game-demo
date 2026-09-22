@@ -175,15 +175,24 @@ class ParkView extends PositionComponent with HasGameReference<FlameGame> {
     _renderLayer(canvas, _trees, (c, d) {
       // A round park tree: a trunk and a big soft canopy. Nothing in a
       // five-year-old's park has a corner on it.
-      final h = size.y * 0.24 * d.scale;
-      final w = size.x * 0.16 * d.scale;
+      //
+      // The canopy is sized and lifted so it sits ABOVE the trunk rather than
+      // swallowing it. The first version used a radius of 0.52 of the tree's
+      // width against a trunk only 70px tall, so the circle covered the trunk
+      // completely and the park was a row of green blobs floating in the sky —
+      // which is only visible by running it, not by any test.
+      final h = size.y * 0.26 * d.scale;
+      final w = size.x * 0.13 * d.scale;
+      final trunkTop = d.y - h * 0.62;
       canvas.drawRect(
-        Rect.fromLTWH(d.x - w * 0.07, d.y - h * 0.55, w * 0.14, h * 0.55),
+        Rect.fromLTWH(d.x - w * 0.09, trunkTop, w * 0.18, d.y - trunkTop),
         Paint()..color = const Color(0xFF9B7A50),
       );
       canvas.drawCircle(
-        Offset(d.x, d.y - h * 0.72),
-        w * 0.52,
+        // Centred on the top of the trunk, with a radius under half the trunk's
+        // height, so a clear length of trunk always shows beneath it.
+        Offset(d.x, trunkTop),
+        w * 0.42,
         Paint()..color = _blend((p) => p.groundFar),
       );
     });
