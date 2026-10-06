@@ -2,7 +2,7 @@
 
 Where we are, right now. Updated at the end of every session.
 
-- **Last updated:** 2026-09-20
+- **Last updated:** 2026-10-06
 - **Now:** the app is playable, has its own sound, and the menu carries **eight** tiles plus a
   parent-gated settings screen. Picture menu → **Balloon Pop** (pop or swipe balloons, colour
   bunches ripple, big balloons shower) → **Cat Run** (a cat that runs, jumps, ducks, bounces and
@@ -16,6 +16,11 @@ Where we are, right now. Updated at the end of every session.
   benches; the bread never gets away). All
   placeholder art (drawn in code) and placeholder (but kid-appropriate) audio, and **no voice yet**
   for the countdown, which is the feature Blast Off is really waiting on.
+- **New (2026-10-06): Little Train**, the ninth tile and the **first game with real artwork, a real
+  voice and its own music**, all generated ahead of time with Google's Gemini API (characters,
+  backgrounds, stations, 10 spoken lines, a Lyria music loop). The app stays fully offline. The
+  maintainer played it and found it much better than the placeholder art. How to do it again:
+  [`GENERATING-ASSETS.md`](GENERATING-ASSETS.md).
 - **Cat Run is the first game with timing in it**, which is the nearest this app has come to a
   failure state. It is resolved by keeping the obstacle and deleting the loss: every miss is
   slapstick (tumble, pancake, belly-flop) and the run never stops. See its
@@ -54,13 +59,14 @@ Where we are, right now. Updated at the end of every session.
 | 17 | Neil the Seal — the sixth game and a new verb: **choose a place**, and watch what two tonnes of relaxed animal does when it gets there. Everything he lands on squashes and springs straight back | **playable, placeholder art** — [scope](scope/games/neil-the-seal-scope.md), [session](sessions/games/neil-the-seal-session.md), [README](../lib/games/neil_the_seal/README.md); **driven in Chrome over CDP** — taps, a mid-trip redirect, a rub, the bellow and a full nap, with no console errors; **never run on a device, and none of its fourteen new sounds has been heard** |
 | 18 | Crystal Party — the seventh game, and the second **journey**: hold anywhere and a unicorn rises on a rainbow, gathering low blue and high pink crystals to fill the arch on the horizon | **playable, placeholder art** — [scope](scope/games/crystal-party-scope.md), [session](sessions/games/crystal-party-session.md), [README](../lib/games/crystal_party/README.md); **played through in a desktop browser under a driven pointer** — a full land, the party, and on into the next land — which found the arch painting nothing at all; never run on a phone or tablet |
 | 19 | Quacky the Duck — the eighth game and a new verb: **close a gap**. A grumpy park duck dashes after children and ducks carrying bread, and skids under benches on the way | **playable, placeholder art** — [scope](scope/games/quacky-the-duck-scope.md), [session](sessions/games/quacky-the-duck-session.md), [README](../lib/games/quacky_the_duck/README.md); **played in Chrome over CDP** — dashing, ducking, catching, a celebration and the way home, with no console errors; never run on a device, and no new sounds |
+| 20 | Little Train — the ninth game, a new verb (**stop at the right place**), and the first built on **generated art, voice and music** (Gemini image, TTS, Lyria) | **playable, generated art** — [scope](scope/games/little-train-scope.md), [session](sessions/games/little-train-session.md), [README](../lib/games/little_train/README.md), [how the assets were made](GENERATING-ASSETS.md); **played by the maintainer** and driven in Chrome over CDP; never run on a device by a session, voice and music never listened to by one |
 
 ## Build health
 
 | Check | State | Notes |
 |---|---|---|
 | `flutter analyze` | clean | 0 issues |
-| `flutter test` | passing | **544 tests**; 71 of them new for Quacky the Duck |
+| `flutter test` | passing | **577 tests**; 33 of them new for Little Train |
 | Android APK | builds | debug APK; `rive_native` links |
 | Web (dev only) | runs | used to drive and screenshot the app from this machine. **Neil the Seal was played through it over the DevTools Protocol** — taps, a mid-trip redirect, a rub, the bellow and a full nap, with no console errors. **Crystal Party too** — a held pointer lifts the unicorn into the clouds and a release floats her down, with no page errors. **Quacky the Duck too** — the menu's eighth tile, dashing, ducking, a catch, a celebration and the way home, with no console errors; note Chrome rejects a CDP websocket without `--remote-allow-origins`. Note headless Chrome throttles `requestAnimationFrame` to nothing unless `--disable-background-timer-throttling` and friends are passed, and a bare mouse event never reaches Flutter's gesture arena without `pointerType` |
 | Played, headless | **yes** | menu → swipe → 10 pops → celebration → home, 1280x720 landscape, no console or page errors |
@@ -147,7 +153,7 @@ remove themselves.
 | The pop ladder still has only **three rungs**. The reason has gone away — **ffmpeg with libmp3lame is on this machine now**, and Neil the Seal generated and encoded fourteen new cues with it — so this is now just a job nobody has done. No Dart change needed when it is | [tools/README.md](../tools/README.md) |
 | **Haptics have no settings switch.** Light impacts only, fire-and-forget, never on a mistake — but a parent who wants them off cannot turn them off | [shared README](../lib/shared/README.md) |
 | Template **arcade music** still plays under the games; only the sfx were replaced | [celebration scope](scope/shared/celebration-and-sound-scope.md) |
-| No real artwork; balloons are drawn shapes, tiles are Material icons | [balloon pop README](../lib/games/balloon_pop/README.md) |
+| No real artwork in the first eight games; balloons are drawn shapes, tiles are Material icons. **Little Train proved generated art works** — the same pipeline could replace them | [balloon pop README](../lib/games/balloon_pop/README.md) |
 | **The ± steppers drop out on a narrow screen** (under ~736dp wide, so every landscape phone). The presets still reach every length, but an adult loses the one-rung nudge on a phone | [controls session](sessions/games/blast-off-controls-overlap-session.md) |
 | Blast Off's rocket grows with the countdown length, but on a very short landscape phone (~375dp) the sky leaves it only a 15% spread — correct and legal, barely visible. The dots stay the readout that always works | [rocket size session](sessions/games/blast-off-rocket-size-session.md) |
 | Dress the Dog fits every landscape phone, but on a very short one (~375dp) the dog ends up small in the corner — correct and hittable, not pretty. Smaller than any target device | [layout session](sessions/games/dress-the-dog-responsive-layout-session.md) |
@@ -187,6 +193,7 @@ Gotcha worth remembering: `Factory` is exported by both `flutter/foundation.dart
 - [`sessions/README.md`](sessions/README.md) — the working logs
 - [`debugging/README.md`](debugging/README.md) — issues and fixes
 - [`testing/README.md`](testing/README.md) — runbooks
+- [`GENERATING-ASSETS.md`](GENERATING-ASSETS.md) — making art, voice and music with Google's Gemini API
 - [`vision/roadmap.md`](vision/roadmap.md) — where this is going
 - [`vision/references.md`](vision/references.md) — public resources the game ideas and the
   design rules are drawn from

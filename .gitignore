@@ -47,3 +47,9 @@ app.*.map.json
 
 .metadata
 pubspec.lock
+
+# Gemini art pipeline (tools/gen_little_train_art.py): local venv and the raw,
+# un-keyed model output. The shipped files are assets/images/little_train/.
+tools/.venv/
+tools/art_raw/
+.env

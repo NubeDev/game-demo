@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 
 import '../audio/audio_controller.dart';
 import '../audio/songs.dart';
+import '../games/little_train/assets.dart';
 import '../shared/kid_palette.dart';
 import '../shared/kid_sounds.dart';
 import '../shared/parental_gate.dart';
@@ -73,6 +74,14 @@ const _games = <_MenuGame>[
     colorIndex: 7,
     route: '/quacky-the-duck',
   ),
+  _MenuGame(
+    // The first tile with a real picture on it: the train's own generated
+    // engine. The icon is only the fallback if the picture is ever removed.
+    icon: Icons.train_rounded,
+    picture: 'assets/images/${LittleTrainAssets.engine}',
+    colorIndex: 8,
+    route: '/little-train',
+  ),
 ];
 
 /// One tile's worth of menu. Not a class a child ever sees — it exists so the
@@ -82,9 +91,13 @@ class _MenuGame {
     required this.icon,
     required this.colorIndex,
     required this.route,
+    this.picture,
   });
 
   final IconData icon;
+
+  /// A picture shown instead of [icon], for games with real artwork.
+  final String? picture;
 
   /// Which of [KidPalette.playColors] this tile is.
   final int colorIndex;
@@ -114,6 +127,7 @@ class _HomeScreenState extends State<HomeScreen> {
   ) {
     return GameTile(
       icon: game.icon,
+      picture: game.picture,
       color: KidPalette.playColors[game.colorIndex],
       size: size,
       onTap: () {

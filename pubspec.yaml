@@ -41,6 +41,7 @@ flutter:
     - assets/images/dash/
     - assets/images/enemies/
     - assets/images/scenery/
+    - assets/images/little_train/
     - assets/music/
     - assets/sfx/
 

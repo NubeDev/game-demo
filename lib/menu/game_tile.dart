@@ -14,11 +14,18 @@ class GameTile extends StatefulWidget {
     required this.icon,
     required this.color,
     required this.onTap,
+    this.picture,
     this.comingSoon = false,
     this.size = defaultSize,
   });
 
   final IconData icon;
+
+  /// A picture to show instead of [icon] — an asset path. Used by games with
+  /// real artwork, whose own character is a far better "this game" sign to a
+  /// child who cannot read than any icon.
+  final String? picture;
+
   final Color color;
   final VoidCallback onTap;
 
@@ -103,13 +110,22 @@ class _GameTileState extends State<GameTile>
               ),
             ],
           ),
-          child: Icon(
-            widget.icon,
-            size: widget.size * 0.52,
-            color: Colors.white.withValues(
-              alpha: widget.comingSoon ? 0.65 : 1,
-            ),
-          ),
+          child: widget.picture == null
+              ? Icon(
+                  widget.icon,
+                  size: widget.size * 0.52,
+                  color: Colors.white.withValues(
+                    alpha: widget.comingSoon ? 0.65 : 1,
+                  ),
+                )
+              : Padding(
+                  padding: EdgeInsets.all(widget.size * 0.12),
+                  child: Image.asset(
+                    widget.picture!,
+                    fit: BoxFit.contain,
+                    filterQuality: FilterQuality.medium,
+                  ),
+                ),
         ),
       ),
     );

@@ -54,6 +54,23 @@ List<String> soundTypeToFilename(SfxType type) => switch (type) {
     'kid_answer5.mp3',
   ],
 
+  // Little Train. Spoken lines, not tones — the first VOICE in the app, made
+  // with Gemini's TTS by `tools/gen_little_train_audio.py`. One type with a
+  // variant per line, in the order of `TrainLine` in `kid_sounds.dart`; the
+  // two lists must stay in step, and a test pins that they do.
+  SfxType.kidTrainVoice => const [
+    'train_all_aboard.mp3',
+    'train_here_we_go.mp3',
+    'train_hop_on.mp3',
+    'train_next_stop.mp3',
+    'train_toot_toot.mp3',
+    'train_we_are_here.mp3',
+    'train_thank_you.mp3',
+    'train_wait_for_me.mp3',
+    'train_yay.mp3',
+    'train_bye_bye.mp3',
+  ],
+
   // Template sfx, kept for reference. Not used by any game — they are arcade
   // hit/damage sounds and too harsh for this audience (CLAUDE.md §3).
   SfxType.jump => const ['jump1.mp3'],
@@ -122,6 +139,11 @@ double soundTypeToVolume(SfxType type) {
       // Rubbing his tummy. It fills nothing and changes nothing, so it sits
       // well under every cue that means something.
       return 0.45;
+    case SfxType.kidTrainVoice:
+      // A voice is instruction to a child who cannot read, so it has to be
+      // heard over the music and the chuffing — but it still sits under the
+      // celebration, which stays the biggest thing in the app.
+      return 0.75;
     case SfxType.kidAnswer:
       // Five of these arrive in a row after one bellow. Quiet enough that the
       // round is funny rather than a racket.
@@ -152,6 +174,7 @@ enum SfxType {
   kidSnore,
   kidWriggle,
   kidAnswer,
+  kidTrainVoice,
   score,
   jump,
   doubleJump,

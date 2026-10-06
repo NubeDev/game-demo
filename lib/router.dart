@@ -7,6 +7,7 @@ import 'games/car_trip/car_trip_screen.dart';
 import 'games/cat_run/cat_run_screen.dart';
 import 'games/crystal_party/crystal_party_screen.dart';
 import 'games/dress_the_dog/dress_the_dog_screen.dart';
+import 'games/little_train/little_train_screen.dart';
 import 'games/neil_the_seal/neil_the_seal_screen.dart';
 import 'games/quacky_the_duck/quacky_the_duck_screen.dart';
 import 'menu/home_screen.dart';
@@ -56,6 +57,11 @@ final router = GoRouter(
           path: 'neil-the-seal',
           builder: (context, state) =>
               const NeilTheSealScreen(key: Key('neil the seal')),
+        ),
+        GoRoute(
+          path: 'little-train',
+          builder: (context, state) =>
+              const LittleTrainScreen(key: Key('little train')),
         ),
         GoRoute(
           path: 'quacky-the-duck',

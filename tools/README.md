@@ -69,3 +69,19 @@ moves — an audible click, and a click is exactly the transient these cues must
 
 Replacing these with real recordings means dropping new files into `assets/sfx/` under the same
 names. No Dart changes.
+
+## `gen_little_train_art.py` / `gen_little_train_audio.py` — generated art, voice and music
+
+Make Little Train's pictures, voice lines and music with Google's Gemini API. They run on a dev
+machine and write plain files into `assets/`; the app never calls Google. The prompts in these
+scripts are the record of where every file came from.
+
+```bash
+python3 -m venv tools/.venv && tools/.venv/bin/pip install google-genai pillow numpy
+export GEMINI_API_KEY=...      # never in a file in this repo
+tools/.venv/bin/python tools/gen_little_train_art.py        # only what is missing
+tools/.venv/bin/python tools/gen_little_train_audio.py
+```
+
+The full method, its gotchas and a checklist for the next game are in
+[`docs/GENERATING-ASSETS.md`](../docs/GENERATING-ASSETS.md).

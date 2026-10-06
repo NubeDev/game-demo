@@ -217,8 +217,18 @@ class AudioController {
 
   void _handleSongFinished(void _) {
     _log.info('Last song finished playing.');
-    // Move the song that just finished playing to the end of the playlist.
-    _playlist.addLast(_playlist.removeFirst());
+    final finished = _playlist.first;
+    // A short loop written for one screen repeats while that screen wants it.
+    if (finished.loops && finished == _requestedSong) {
+      _playCurrentSongInPlaylist();
+      return;
+    }
+    // Move the song that just finished playing to the end of the playlist —
+    // unless it is a screen's own loop, which no other screen should land on.
+    _playlist.removeFirst();
+    if (!finished.loops) _playlist.addLast(finished);
+    _playlist.removeWhere((song) => song.loops && song != _requestedSong);
+    if (_playlist.isEmpty) _playlist.addAll(songs);
     // Play the song at the beginning of the playlist.
     _playCurrentSongInPlaylist();
   }

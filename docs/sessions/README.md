@@ -18,3 +18,4 @@ folder. See [`../ABOUT-DOCS.md`](../ABOUT-DOCS.md) for the template and the defi
 | [games/neil-the-seal-session.md](games/neil-the-seal-session.md) | 2026-09-20 | games | done |
 | [games/crystal-party-session.md](games/crystal-party-session.md) | 2026-09-20 | games | done |
 | [games/quacky-the-duck-session.md](games/quacky-the-duck-session.md) | 2026-09-20 | games | done |
+| [games/little-train-session.md](games/little-train-session.md) | 2026-10-06 | games | done |

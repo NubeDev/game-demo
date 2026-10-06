@@ -161,4 +161,29 @@ class KidSounds {
   /// telegraphs it, so the biggest noise a child hears still cannot startle
   /// them (CLAUDE.md §3).
   void snore() => _audio.playSfx(SfxType.kidSnore);
+
+  // --- Little Train --------------------------------------------------------
+
+  /// One spoken line (Little Train). The first real VOICE in the app: a child
+  /// who cannot read understands "Hop on!" instantly, which no tone can say.
+  void say(TrainLine line) =>
+      _audio.playSfx(SfxType.kidTrainVoice, variant: line.index);
+}
+
+/// The lines Little Train can say, in the same order as the files listed for
+/// [SfxType.kidTrainVoice] — the index IS the variant. A test pins that the
+/// two lists are the same length, so adding a line in only one place fails.
+///
+/// The conductor speaks the first six; a passenger (a younger voice) the rest.
+enum TrainLine {
+  allAboard,
+  hereWeGo,
+  hopOn,
+  nextStop,
+  tootToot,
+  weAreHere,
+  thankYou,
+  waitForMe,
+  yay,
+  byeBye,
 }
