@@ -9,6 +9,7 @@ consistent. A child should learn what a celebration means in one game and recogn
 | `kid_shapes.dart` | Shapes drawn in more than one place — the star, the cloud |
 | `kid_sounds.dart` | Named cues (`pop`, `celebrate`, `wobble`, `tap`) over the template's `AudioController` |
 | `kid_haptics.dart` | The small physical answer to a success. Never to a mistake |
+| `lantern_cast.dart` | The six Lantern Island friends: names in one place, SVG paths, and `rasterizeSvg` |
 | `home_button.dart` | The one way out of any game |
 | `parental_gate.dart` | The 3-second hold protecting the parent area |
 | `celebration.dart` | Confetti — the reward loop |

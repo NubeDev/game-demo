@@ -37,3 +37,4 @@ for how to write one and [`../ABOUT-DOCS.md`](../ABOUT-DOCS.md) for where it sit
 | [games/crystal-party-scope.md](games/crystal-party-scope.md) | built | Seventh game: hold to fly a unicorn up and down, gather low blue and high pink crystals, finish the rainbow arch, party |
 | [games/quacky-the-duck-scope.md](games/quacky-the-duck-scope.md) | built | Eighth game: a grumpy park duck dashes after children and ducks carrying bread, skidding under benches; the bread never gets away |
 | [games/little-train-scope.md](games/little-train-scope.md) | built | A toy train through four lands; stop to pick up animal passengers. The first game with **generated** art, voice and music |
+| [games/surfs-up-scope.md](games/surfs-up-scope.md) | built | Koko the quokka catches swells to the beach, hopping for shells. The first **Lantern Island** game, on the approved SVG cast |

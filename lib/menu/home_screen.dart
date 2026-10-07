@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../audio/audio_controller.dart';
 import '../audio/songs.dart';
 import '../games/little_train/assets.dart';
+import '../games/surfs_up/assets.dart';
 import '../shared/kid_palette.dart';
 import '../shared/kid_sounds.dart';
 import '../shared/parental_gate.dart';
@@ -81,6 +82,14 @@ const _games = <_MenuGame>[
     picture: 'assets/images/${LittleTrainAssets.engine}',
     colorIndex: 8,
     route: '/little-train',
+  ),
+  _MenuGame(
+    // Koko herself — the first Lantern Island friend on the menu. The art is
+    // SVG; the tile draws it as one (see [GameTile.picture]).
+    icon: Icons.surfing_rounded,
+    picture: SurfsUpAssets.kokoSurfing,
+    colorIndex: 9,
+    route: '/surfs-up',
   ),
 ];
 

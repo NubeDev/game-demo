@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../shared/kid_palette.dart';
 
@@ -23,7 +24,8 @@ class GameTile extends StatefulWidget {
 
   /// A picture to show instead of [icon] — an asset path. Used by games with
   /// real artwork, whose own character is a far better "this game" sign to a
-  /// child who cannot read than any icon.
+  /// child who cannot read than any icon. A `.svg` path is drawn as vector
+  /// art (the Lantern Island cast); anything else as a raster image.
   final String? picture;
 
   final Color color;
@@ -120,11 +122,13 @@ class _GameTileState extends State<GameTile>
                 )
               : Padding(
                   padding: EdgeInsets.all(widget.size * 0.12),
-                  child: Image.asset(
-                    widget.picture!,
-                    fit: BoxFit.contain,
-                    filterQuality: FilterQuality.medium,
-                  ),
+                  child: widget.picture!.endsWith('.svg')
+                      ? SvgPicture.asset(widget.picture!, fit: BoxFit.contain)
+                      : Image.asset(
+                          widget.picture!,
+                          fit: BoxFit.contain,
+                          filterQuality: FilterQuality.medium,
+                        ),
                 ),
         ),
       ),

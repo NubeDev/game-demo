@@ -2,8 +2,8 @@
 
 Where we are, right now. Updated at the end of every session.
 
-- **Last updated:** 2026-10-06
-- **Now:** the app is playable, has its own sound, and the menu carries **eight** tiles plus a
+- **Last updated:** 2026-10-07
+- **Now:** the app is playable, has its own sound, and the menu carries **ten** tiles plus a
   parent-gated settings screen. Picture menu → **Balloon Pop** (pop or swipe balloons, colour
   bunches ripple, big balloons shower) → **Cat Run** (a cat that runs, jumps, ducks, bounces and
   bonks, and never loses) → **Dress the Dog** (dress a dog against the weather) → **Car Trip**
@@ -21,6 +21,13 @@ Where we are, right now. Updated at the end of every session.
   backgrounds, stations, 10 spoken lines, a Lyria music loop). The app stays fully offline. The
   maintainer played it and found it much better than the placeholder art. How to do it again:
   [`GENERATING-ASSETS.md`](GENERATING-ASSETS.md).
+- **New (2026-10-07): Surf's Up**, the tenth tile and the **first Lantern Island game**. The
+  maintainer's new spec ([`game-script/LANTERN_ISLAND_SPEC.md`](../game-script/LANTERN_ISLAND_SPEC.md))
+  brings six animal friends with approved SVG art. Koko the quokka catches swells to the beach
+  (tap = up: pop up, then hop for shells), and three friends wait there for a party. The cast is
+  shared code ([`lib/shared/lantern_cast.dart`](../lib/shared/lantern_cast.dart)) so later Lantern
+  Island games reuse it. **No voice yet** (no Gemini key in that session). The rest of the spec
+  (island map, languages, Word Jar, Lantern Night, restyling old games) is not started.
 - **Cat Run is the first game with timing in it**, which is the nearest this app has come to a
   failure state. It is resolved by keeping the obstacle and deleting the loss: every miss is
   slapstick (tumble, pancake, belly-flop) and the run never stops. See its
@@ -60,13 +67,14 @@ Where we are, right now. Updated at the end of every session.
 | 18 | Crystal Party — the seventh game, and the second **journey**: hold anywhere and a unicorn rises on a rainbow, gathering low blue and high pink crystals to fill the arch on the horizon | **playable, placeholder art** — [scope](scope/games/crystal-party-scope.md), [session](sessions/games/crystal-party-session.md), [README](../lib/games/crystal_party/README.md); **played through in a desktop browser under a driven pointer** — a full land, the party, and on into the next land — which found the arch painting nothing at all; never run on a phone or tablet |
 | 19 | Quacky the Duck — the eighth game and a new verb: **close a gap**. A grumpy park duck dashes after children and ducks carrying bread, and skids under benches on the way | **playable, placeholder art** — [scope](scope/games/quacky-the-duck-scope.md), [session](sessions/games/quacky-the-duck-session.md), [README](../lib/games/quacky_the_duck/README.md); **played in Chrome over CDP** — dashing, ducking, catching, a celebration and the way home, with no console errors; never run on a device, and no new sounds |
 | 20 | Little Train — the ninth game, a new verb (**stop at the right place**), and the first built on **generated art, voice and music** (Gemini image, TTS, Lyria) | **playable, generated art** — [scope](scope/games/little-train-scope.md), [session](sessions/games/little-train-session.md), [README](../lib/games/little_train/README.md), [how the assets were made](GENERATING-ASSETS.md); **played by the maintainer** and driven in Chrome over CDP; never run on a device by a session, voice and music never listened to by one |
+| 21 | Surf's Up — the tenth game and the first **Lantern Island** game: Koko catches swells to the beach and hops for shells, on the approved SVG cast | **playable, SVG cast + code-drawn scenery** — [scope](scope/games/surfs-up-scope.md), [session](sessions/games/surfs-up-session.md), [README](../lib/games/surfs_up/README.md); **driven in Chrome over CDP** — menu, three rides, two parties, no console errors; never run on a device, no sound heard, no voice |
 
 ## Build health
 
 | Check | State | Notes |
 |---|---|---|
 | `flutter analyze` | clean | 0 issues |
-| `flutter test` | passing | **577 tests**; 33 of them new for Little Train |
+| `flutter test` | passing | **602 tests**; 25 of them new for Surf's Up |
 | Android APK | builds | debug APK; `rive_native` links |
 | Web (dev only) | runs | used to drive and screenshot the app from this machine. **Neil the Seal was played through it over the DevTools Protocol** — taps, a mid-trip redirect, a rub, the bellow and a full nap, with no console errors. **Crystal Party too** — a held pointer lifts the unicorn into the clouds and a release floats her down, with no page errors. **Quacky the Duck too** — the menu's eighth tile, dashing, ducking, a catch, a celebration and the way home, with no console errors; note Chrome rejects a CDP websocket without `--remote-allow-origins`. Note headless Chrome throttles `requestAnimationFrame` to nothing unless `--disable-background-timer-throttling` and friends are passed, and a bare mouse event never reaches Flutter's gesture arena without `pointerType` |
 | Played, headless | **yes** | menu → swipe → 10 pops → celebration → home, 1280x720 landscape, no console or page errors |

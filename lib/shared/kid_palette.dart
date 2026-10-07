@@ -31,7 +31,7 @@ class KidPalette {
   /// who cannot read picks their game by colour and shape alone, so two
   /// identical tiles are two games they cannot tell apart (CLAUDE.md §3).
   ///
-  /// Nine, for nine games. Each new game needs a colour added here that is
+  /// Ten, for ten games. Each new game needs a colour added here that is
   /// distinguishable from all of these at a glance — that is the real limit
   /// on how many mini-games this menu can carry, and it is a deliberate one:
   /// the roadmap asks for "five or six, not fifty".
@@ -48,6 +48,9 @@ class KidPalette {
     // tile carries a picture of the engine as well, so it is the least likely
     // of the nine to be mistaken for another.
     Color(0xFF5B7BEA), // indigo
+    // Surf's Up. A lime, the one hue family the menu had not used; its tile
+    // carries Koko herself too.
+    Color(0xFFB5D33D), // lime
   ];
 
   /// Used for the progress stars and celebration stars.

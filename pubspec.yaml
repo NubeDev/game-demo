@@ -24,6 +24,7 @@ dependencies:
   logging: ^1.3.0
   rive: ^0.14.11
   flame_rive: ^1.11.2
+  flutter_svg: ^2.3.0
 
 dev_dependencies:
   flame_test: ^2.3.0
@@ -42,6 +43,7 @@ flutter:
     - assets/images/enemies/
     - assets/images/scenery/
     - assets/images/little_train/
+    - assets/lantern_island/
     - assets/music/
     - assets/sfx/
 

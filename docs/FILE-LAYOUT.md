@@ -20,6 +20,7 @@ lib/
 │   ├── celebration.dart   ← the reward effect
 │   ├── kid_sounds.dart    ← named cues over AudioController
 │   ├── kid_haptics.dart   ← the physical answer to a success (never to a mistake)
+│   ├── lantern_cast.dart  ← the Lantern Island cast: names, SVG paths, rasterise once
 │   ├── kid_palette.dart   ← the colour vocabulary
 │   ├── kid_shapes.dart    ← shapes used in more than one place
 │   ├── home_button.dart   ← the one home button
